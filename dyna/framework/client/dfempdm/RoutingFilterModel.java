@@ -4,7 +4,6 @@
  */
 package dyna.framework.client.dfempdm;
 
-import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.event.TableModelListener;

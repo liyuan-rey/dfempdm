@@ -7,7 +7,6 @@ package dyna.framework.client.dfempdm;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -130,60 +129,10 @@ public class FileCellEditor extends AbstractCellEditor implements
 	    dialog.getContentPane().setLayout(new BorderLayout());
 	    dialog.getContentPane().add(filePanel, BorderLayout.CENTER);
 
-        // Center the window
-	    dialog.setSize(320, 360);
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        Dimension dlgSize = dialog.getSize();
-        if (dlgSize.height > screenSize.height) {
-            dlgSize.height = screenSize.height;
-        }
-        if (dlgSize.width > screenSize.width) {
-            dlgSize.width = screenSize.width;
-        }
-        dialog.setLocation((screenSize.width - dlgSize.width) / 2,
-                (screenSize.height - dlgSize.height) / 2);
-
+	    util.CenterWindow(null, dialog);
 	    dialog.show();
 	    
 	    filePanel = null;
 	    dialog = null;
     }
-//    /**
-//     * 
-//     */
-//    private void buildUI() {
-//        try {
-////            if (uiGen != null) {
-////            Class uiGenClass1 = uiGen.getClass();
-////            Field filePanelField1 = uiGenClass1.getDeclaredField("filePanel");
-////            filePanelField1.setAccessible(true);
-////            JPanel filePanel1 = (JPanel)filePanelField1.get(uiGen);
-////            if (filePanel1 != null) {
-////                JTabbedPane tab = (JTabbedPane)filePanel1.getParent();
-//////                tab.removeAll();
-////                tab.add(filePanel1);
-////                
-////                uiGen.show();
-////                return;
-////            }
-////            }
-//            String ouid = (String)dosRouting.get("ouid");
-//            uiGen = UIBuilder.displayInstanceWindow (ouid, DynaMOAD.dos, DynaMOAD.dss);
-//            uiGen.mak
-//            
-//            Class uiGenClass = uiGen.getClass();
-//            Field filePanelField = uiGenClass.getDeclaredField("filePanel");
-//            filePanelField.setAccessible(true);
-//            JPanel filePanel = (JPanel)filePanelField.get(uiGen);
-//            JTabbedPane tabPane = (JTabbedPane)filePanel.getParent();
-//            tabPane.removeAll();
-//            tabPane.add(filePanel);
-////            Component [] comps = uiGen.getContentPane().getComponents();
-////            for (int i = 0; i < comps.length; i++) {
-////                System.out.println(comps.getClass());
-////            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//    }
 }

@@ -13,6 +13,8 @@ import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
@@ -343,12 +345,38 @@ public class RoutingEditor extends JFrame {
             
             routingTable.setModel(getRoutingTableModel());
             routingTable.setFocusable(true);
+            
+            routingTable.getSelectionModel().addListSelectionListener(getColSelListener());
             routingTable.getColumnModel().getSelectionModel()
                     .addListSelectionListener(getColSelListener());
             
+            routingTable.addKeyListener(new KeyAdapter() {
+                public void keyPressed(KeyEvent e) {
+                    if (e.getKeyCode() != KeyEvent.VK_DELETE)
+                        return;
+                    
+                    int row = routingTable.getSelectedRow();
+                    int col = routingTable.getSelectedColumn();
+                    
+                    if (routingTable.isCellEditable(row, col) == false)
+                        return;
+                    
+                    if (col == RoutingTableModel.DESCRIPTION_COLUMN)
+                        routingTable.setValueAt(null, row, col);
+                    
+                    TableCellEditor editor = routingTable.getCellEditor(row, col);
+                    if (editor instanceof DefaultCellEditor) {
+                        Component comp = ((DefaultCellEditor)editor).getComponent();
+                        if (comp instanceof JTextField)
+                            routingTable.setValueAt(null, row, col);
+                            //((JTextField)comp).setText("");
+                    }
+                }
+            });
+            
             routingTable.addMouseListener(new MouseAdapter() {
                 // 鼠标左键复制, 右键粘贴特性, 可以将工序和工序模板对象粘贴为新工序对象
-                public void mouseClicked(MouseEvent e) {
+                public void mouseReleased(MouseEvent e) {
                     if (e.getButton() == MouseEvent.BUTTON1) { // 左键
                         doCopyRouting();
                     } else if (e.getButton() == MouseEvent.BUTTON3) { // 右键
@@ -730,7 +758,7 @@ public class RoutingEditor extends JFrame {
 	    
             CodeSelectDialog dlg = new CodeSelectDialog(this, "选择", true, codeTree);
 
-            util.CenterWindow(null, this);
+            util.centerWindow(null, this);
             dlg.show();
 
             if (dlg.getChoice() != JOptionPane.OK_OPTION)
@@ -839,7 +867,7 @@ public class RoutingEditor extends JFrame {
             	            || selRows[0] >= routingTable.getRowCount())
             	        return;
             	    
-            	    int option = JOptionPane.showConfirmDialog(RoutingEditor.this, "确定要删除这条工序吗?", "提示", 
+            	    int option = JOptionPane.showConfirmDialog(RoutingEditor.this, "确定要删除所选择的工序吗?", "提示", 
             	            JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
             	    if (option != JOptionPane.YES_OPTION)
             	        return;
@@ -1751,6 +1779,8 @@ public class RoutingEditor extends JFrame {
                 Object value = tableModel.getValueAt(i, j);
                 tmpString = value == null ? "" : value.toString().trim();
                 
+                String rowTitle = (String)routingTable.getValueAt(i, RoutingTableModel.SEQUENCE_NO_COLUMN);
+                
                 switch (j) {
                 case RoutingTableModel.SEQUENCE_NO_COLUMN:
                 case RoutingTableModel.WORKSHOP_COLUMN:
@@ -1759,7 +1789,7 @@ public class RoutingEditor extends JFrame {
                 case RoutingTableModel.SEQUENCE_TYPE_COLUMN:
                 case RoutingTableModel.DESCRIPTION_COLUMN:
                     if (tmpString.equals(""))
-                        msg += "第 " + (i+1) + " 行, " + routingTable.getColumnName(j) + "必须填写;\n";
+                        msg += "序 " + rowTitle + ", " + routingTable.getColumnName(j) + "必须填写;\n";
                     break;
                 case RoutingTableModel.ENTER_SEQUENCE_COLUMN:
                 case RoutingTableModel.END_SEQUENCE_COLUMN:
@@ -1768,16 +1798,16 @@ public class RoutingEditor extends JFrame {
                 	
                     if (tmpObject != null && tmpObject.toString().equals("并行顺序 [1]")) {
                         if (value == null || tmpString.equals(""))
-                            msg += "第 " + (i+1) + " 行, 并行工序必须有" + routingTable.getColumnName(j) + ";\n";
+                            msg += "序 " + rowTitle + ", 并行工序必须有" + routingTable.getColumnName(j) + ";\n";
                         else {
                             try {
                                 intValue = new Integer(tmpString);
                                 if (intValue.intValue() > (routingTable.getRowCount())*10) {
-                                    msg += "第 " + (i+1) + " 行, " + routingTable.getColumnName(j) + "值范围超限;\n";
+                                    msg += "序 " + rowTitle + ", " + routingTable.getColumnName(j) + "值范围超限;\n";
                                     break;
                                 }
                             } catch (NumberFormatException nfe) {
-                                msg += "第 " + (i+1) + " 行, " + routingTable.getColumnName(j) + "必须填入有效整数;\n";
+                                msg += "序 " + rowTitle + ", " + routingTable.getColumnName(j) + "必须填入有效整数;\n";
                             }
                         }
                     
@@ -1785,7 +1815,7 @@ public class RoutingEditor extends JFrame {
                                 && value != null && tmpString.equals("") == false) {
                             tmpObject = routingTable.getValueAt(i, RoutingTableModel.ENTER_SEQUENCE_COLUMN);
                             if (tmpObject != null && Integer.parseInt(tmpObject.toString()) >= Integer.parseInt(tmpString))
-                                msg += "第 " + (i+1) + " 行, 结束工序不能早于起始工序;\n";
+                                msg += "序 " + rowTitle + ", 结束工序不能早于起始工序;\n";
                         }
                     }
                     
@@ -1797,7 +1827,7 @@ public class RoutingEditor extends JFrame {
                         if (value != null)
                             tableModel.getRawData(i).put(RoutingTableModel.getColumnDosName(j), new Float(tmpString));
                     } catch (NumberFormatException nfe) {
-                        msg += "第 " + (i+1) + " 行, " + routingTable.getColumnName(j) + "必须填入有效单精度浮点数;\n";
+                        msg += "序 " + rowTitle + ", " + routingTable.getColumnName(j) + "必须填入有效单精度浮点数;\n";
                     }
                     break;
                 case RoutingTableModel.PROCESS_NUM_COLUMN:
@@ -1805,7 +1835,7 @@ public class RoutingEditor extends JFrame {
                         if (value != null)
                         	tableModel.getRawData(i).put(RoutingTableModel.getColumnDosName(j), new Double(tmpString));
                     } catch (NumberFormatException nfe) {
-                        msg += "第 " + (i+1) + " 行, " + routingTable.getColumnName(j) + "必须填入有效双精度浮点数;\n";
+                        msg += "序 " + rowTitle + ", " + routingTable.getColumnName(j) + "必须填入有效双精度浮点数;\n";
                     }
                     break;
                 case RoutingTableModel.WORKSHOP_SEQUENCE_COLUMN:
@@ -1814,7 +1844,7 @@ public class RoutingEditor extends JFrame {
                         if (value != null)
                         	tableModel.getRawData(i).put(RoutingTableModel.getColumnDosName(j), new Integer(tmpString));
                     } catch (NumberFormatException nfe) {
-                        msg += "第 " + (i+1) + " 行, " + routingTable.getColumnName(j) + "必须填入有效整数;\n";
+                        msg += "序 " + rowTitle + ", " + routingTable.getColumnName(j) + "必须填入有效整数;\n";
                     }
                     break;
                 }
@@ -1823,6 +1853,7 @@ public class RoutingEditor extends JFrame {
         
         if (msg.length() > 0) {
             JDialog msgDlg = util.createInformationDialog(this, "提示", "下列数据填写不正确:\n" + msg + "请修正后重新保存.");
+            util.centerWindow(null, msgDlg);
             msgDlg.show();
             msgDlg = null;
             

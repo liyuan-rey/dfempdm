@@ -26,7 +26,7 @@ import dyna.framework.service.dos.DOSChangeable;
  */
 public class util {
 
-    public static void CenterWindow(Component alternateOwner, Component centerComp) {
+    public static void centerWindow(Component alternateOwner, Component centerComp) {
         Dimension ownerSize = (alternateOwner == null ?
                 Toolkit.getDefaultToolkit().getScreenSize() :
                     alternateOwner.getSize());
@@ -91,8 +91,8 @@ public class util {
         
         dialog.setContentPane(panel);
         
-        dialog.setSize(250, 380);
-        CenterWindow(null, dialog);
+        dialog.setSize(330, 240);
+        centerWindow(null, dialog);
         
         return dialog;
     }

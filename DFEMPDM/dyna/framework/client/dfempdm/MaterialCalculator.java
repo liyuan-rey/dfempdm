@@ -648,7 +648,7 @@ public class MaterialCalculator extends JFrame {
 	                Double dTmp = (Double)dosMaterial.get("Density");
 	                f.setValue("密度", dTmp == null ? null : dTmp.toString());
 	                dTmp = (Double)dosMaterial.get("Theoretic Weight");
-	                f.setValue("单位长度重量", dTmp == null ? null : dTmp.toString());
+	                f.setValue("单位重量", dTmp == null ? null : dTmp.toString());
 	            }
             } catch (Exception e) {
                 // do nothing
@@ -657,7 +657,7 @@ public class MaterialCalculator extends JFrame {
         }
         
         f.pack();
-        util.CenterWindow(null, f);
+        util.centerWindow(null, f);
         f.show();
         
         if (f.userChoice != JOptionPane.OK_OPTION)

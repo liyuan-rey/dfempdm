@@ -53,7 +53,7 @@ public class HowTo {
 			calculator.setContextObject(dosObj);
 			
 			calculator.pack();
-			util.CenterWindow(null, calculator);
+			util.centerWindow(null, calculator);
 			calculator.show();
         } catch (Exception e) {
 			e.printStackTrace();

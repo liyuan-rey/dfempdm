@@ -156,7 +156,7 @@ public class RoutingTemplatePanel extends JPanel {
 			
 			templTable.addMouseListener(new MouseAdapter() {
                 // 鼠标左键复制, 将选中的对象复制到本地剪贴板
-                public void mouseClicked(MouseEvent e) {
+                public void mouseReleased(MouseEvent e) {
                     if (e.getButton() == MouseEvent.BUTTON1) { // 左键
                         doCopyTemplate();
                     }

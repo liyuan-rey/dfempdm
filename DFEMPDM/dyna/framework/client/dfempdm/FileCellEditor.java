@@ -128,7 +128,8 @@ public class FileCellEditor extends AbstractCellEditor implements
 	    dialog.getContentPane().setLayout(new BorderLayout());
 	    dialog.getContentPane().add(filePanel, BorderLayout.CENTER);
 
-	    util.CenterWindow(null, dialog);
+	    dialog.setSize(260, 360);
+	    util.centerWindow(null, dialog);
 	    dialog.show();
 	    
 	    filePanel = null;

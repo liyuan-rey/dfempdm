@@ -900,7 +900,7 @@ public class RoutingEditor extends JFrame {
                         return;
                     }
                     
-                    if (!checkFilterModel())
+                    if (!checkFilterModel(true))
                         return;
 
                     TableCellEditor editor = routingTable.getCellEditor();
@@ -936,9 +936,11 @@ public class RoutingEditor extends JFrame {
         return btnAdd;
     }
 
-    private boolean checkFilterModel() {
+    private boolean checkFilterModel(boolean showMsg) {
         if (filterModel.needFilter()) {
-            JOptionPane.showMessageDialog(this, "过滤显示模式下无法进行此操作, 请先取消过滤显示模式.");
+            if (showMsg)
+                JOptionPane.showMessageDialog(this, "过滤显示模式下无法进行此操作, 请先取消过滤显示模式.");
+            
             return false;
         }
         
@@ -965,7 +967,7 @@ public class RoutingEditor extends JFrame {
                         return;
                     }
 
-                    if (!checkFilterModel())
+                    if (!checkFilterModel(true))
                         return;
 
                     // begin del logic
@@ -1025,7 +1027,7 @@ public class RoutingEditor extends JFrame {
                         return;
                     }
 
-                    if (!checkFilterModel())
+                    if (!checkFilterModel(true))
                         return;
 
                     // 目前不提供同时移动多行的功能, 因为有隔行多选时进行移动的逻辑不确定
@@ -1071,7 +1073,7 @@ public class RoutingEditor extends JFrame {
                         return;
                     }
 
-                    if (!checkFilterModel())
+                    if (!checkFilterModel(true))
                         return;
 
                     // 目前不提供同时移动多行的功能, 因为有隔行多选时进行移动的逻辑不确定
@@ -1326,7 +1328,7 @@ public class RoutingEditor extends JFrame {
         column.setCellEditor(new DefaultCellEditor(cbxOperationSpecialty) {
 
             public boolean isCellEditable(EventObject anEvent) { 
-                if (!checkFilterModel())
+                if (!checkFilterModel(false))
                     return false;
                 
             	return delegate.isCellEditable(anEvent); 

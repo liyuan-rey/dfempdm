@@ -65,6 +65,8 @@ public class RoutingTableModel extends AbstractTableModel {
     int editMode = 0;
     ArrayList authorTypes = new ArrayList();
 
+    private boolean bDirty = false; // 数据是否改动过标识
+
     static final int [][] mapping = { // {工序模板对象需要写入的字段, 对应的工序对象字段}
         {RoutingTemplatePanel.SEQUENCE_NO_COLUMN, RoutingTableModel.SEQUENCE_NO_COLUMN},
         {RoutingTemplatePanel.WORKSHOP_COLUMN, RoutingTableModel.WORKSHOP_COLUMN},
@@ -187,6 +189,9 @@ public class RoutingTableModel extends AbstractTableModel {
             return;
         
         DOSChangeable dosRouting = (DOSChangeable)data.get(row);
+        Object oldValue = dosRouting.get(columnInfo[col][1]);
+        if (oldValue.equals(value.toString()))
+            return;
 	    
         // 更新隐藏的 ouid
         if (col == WORKSHOP_COLUMN || col == WORKCENTER_COLUMN
@@ -247,6 +252,7 @@ public class RoutingTableModel extends AbstractTableModel {
         dosRouting.put(columnInfo[col][1], value == null ? null : value.toString());
 
         fireTableRowsUpdated(row, row);
+        setDirty(true);
     }
 
     public void addRow(int index, DOSChangeable rowData, boolean doCheck) {
@@ -294,6 +300,7 @@ public class RoutingTableModel extends AbstractTableModel {
 	    calcSequenceNum(index, lastRow);
 	    
         fireTableRowsInserted(lastRow, lastRow);
+        setDirty(true);
     }
     
     /**
@@ -399,6 +406,7 @@ public class RoutingTableModel extends AbstractTableModel {
             data.remove(i);
         
         fireTableDataChanged();
+        setDirty(true);
     }
     
     /**
@@ -411,7 +419,9 @@ public class RoutingTableModel extends AbstractTableModel {
         
         data.remove(row);
 	    calcSequenceNum(row, maxIndex);
+	    
 	    fireTableDataChanged();
+        setDirty(true);
     }
     
     /**
@@ -425,7 +435,9 @@ public class RoutingTableModel extends AbstractTableModel {
 	    
 	    data.removeAll(removedRows);
 	    calcSequenceNum(rows[0], data.size() - 1);
+	    
 	    fireTableDataChanged();
+        setDirty(true);
     }
 
     private static int gcd(int i, int j) {
@@ -500,7 +512,9 @@ public class RoutingTableModel extends AbstractTableModel {
         rotate(data, first, last + 1, shift);
 
         calcSequenceNum(first, last);
+
         fireTableRowsUpdated(first, last);
+        setDirty(true);
     }
 
     /**
@@ -523,6 +537,7 @@ public class RoutingTableModel extends AbstractTableModel {
     }
 
     public DOSChangeable setRawData(int index, DOSChangeable newItem) {
+        setDirty(true);
         return (DOSChangeable)data.set(index, newItem);
     }
 
@@ -540,5 +555,13 @@ public class RoutingTableModel extends AbstractTableModel {
      */
     public void setEditable(boolean bEditable) {
         bCellEditable = bEditable;
+    }
+    
+    public void setDirty(boolean bFlag) {
+        bDirty = bFlag;
+    }
+    
+    public boolean isDirty() {
+        return bDirty;
     }
 }

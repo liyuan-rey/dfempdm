@@ -16,7 +16,7 @@ import dyna.framework.service.dos.DOSChangeable;
  *
  */
 public class RoutingTableModel extends AbstractTableModel {
-	public static final int SEQUENCE_NO_COLUMN = 0; // 工序号
+	public static final int SEQUENCE_NO_COLUMN = 0; // 工序号, 还在 RoutingFilterModel 中用于真实数据索引计算, 所以不要轻易修改自动生成逻辑
 	public static final int WORKSHOP_COLUMN = 1; // 加工分厂
 	public static final int WORKCENTER_COLUMN = 2; // 工作中心
 	public static final int OPERATION_SPECIALTY_COLUMN = 3; // 工艺专业类型

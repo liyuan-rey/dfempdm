@@ -592,11 +592,11 @@ public class MaterialCalculator extends JDialog {
             
             // 毛坯单位
             tmpObject = contextObj.get("rough_uom");
-            util.refreshCodeComboBox("单位", cbxRoughUom, (String)tmpObject);
+            util.refreshCodeComboBox("单位", cbxRoughUom, (String)tmpObject, true);
             
             // 材料单位
             tmpObject = contextObj.get("m_uom");
-            util.refreshCodeComboBox("单位", cbxMaterialUom, (String)tmpObject);
+            util.refreshCodeComboBox("单位", cbxMaterialUom, (String)tmpObject, true);
             
             // 公式列表
             refreshCbxFormulae();

@@ -45,9 +45,10 @@ public class util {
     }
 
     public static void refreshCodeComboBox(String codeName, JComboBox combo,
-            String selItemId) throws Exception {
-        combo.removeAllItems();
-    
+            String selItemId, boolean forceClear) throws Exception {
+        if (forceClear)
+            combo.removeAllItems();
+        
         DOSChangeable dosSqType = dyna.framework.client.DynaMOAD.dos.getCodeWithName(codeName);
         if (dosSqType != null) {
             String ouid = (String)dosSqType.get("ouid");

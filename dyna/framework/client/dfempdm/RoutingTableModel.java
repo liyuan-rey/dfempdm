@@ -61,6 +61,7 @@ public class RoutingTableModel extends AbstractTableModel {
 
 	private ArrayList data = new ArrayList();
 
+    private boolean bCellEditable = false;
     int editMode = 0;
     ArrayList authorTypes = new ArrayList();
 
@@ -122,6 +123,9 @@ public class RoutingTableModel extends AbstractTableModel {
 	 * @see javax.swing.table.TableModel#isCellEditable(int, int)
 	 */
 	public boolean isCellEditable(int row, int col) {
+	    if (!bCellEditable)
+	        return false;
+	    
 	    // 优先编辑模式验证 editMode
 	    if (editMode == 0) {
 	        return false;
@@ -529,5 +533,12 @@ public class RoutingTableModel extends AbstractTableModel {
     public void setAuthorInfo(int editMode, ArrayList authorTypes) {
         this.editMode = editMode;
         this.authorTypes = authorTypes;
+    }
+
+    /**
+     * @param bEditable
+     */
+    public void setEditable(boolean bEditable) {
+        bCellEditable = bEditable;
     }
 }

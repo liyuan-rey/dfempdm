@@ -15,6 +15,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.table.DefaultTableModel;
@@ -81,7 +82,6 @@ public class RoutingTemplatePanel extends JPanel {
         this.setPreferredSize(new java.awt.Dimension(120,80));
         this.setSize(384, 213);
         this.add(getJSplitPane(), java.awt.BorderLayout.CENTER);
-			
 	}
 	/**
 	 * This method initializes jSplitPane	
@@ -91,12 +91,36 @@ public class RoutingTemplatePanel extends JPanel {
 	private JSplitPane getJSplitPane() {
 		if (jSplitPane == null) {
 			jSplitPane = new JSplitPane();
+			jSplitPane.setLeftComponent(getTreeScrollPanel());
 			jSplitPane.setRightComponent(getTableScrollPanel());
 			jSplitPane.setDividerLocation(180);
-			jSplitPane.setLeftComponent(getTreeScrollPanel());
 			jSplitPane.setDividerSize(3);
 		}
 		return jSplitPane;
+	}
+	/**
+	 * This method initializes jScrollPane2	
+	 * 	
+	 * @return javax.swing.JScrollPane	
+	 */    
+	private JScrollPane getTreeScrollPanel() {
+		if (treeScrollPanel == null) {
+			treeScrollPanel = new JScrollPane();
+			treeScrollPanel.setViewportView(getJTree());
+		}
+		return treeScrollPanel;
+	}
+	/**
+	 * This method initializes jScrollPane	
+	 * 	
+	 * @return javax.swing.JScrollPane	
+	 */    
+	private JScrollPane getTableScrollPanel() {
+		if (tableScrollPanel == null) {
+			tableScrollPanel = new JScrollPane();
+			tableScrollPanel.setViewportView(getTemplTable());
+		}
+		return tableScrollPanel;
 	}
 	/**
 	 * This method initializes codeTree	
@@ -139,12 +163,19 @@ public class RoutingTemplatePanel extends JPanel {
 	 */    
 	public JTable getTemplTable() {
 		if (templTable == null) {
-			templTable = new JTable/*DynaTable*/();
+			templTable = new JTable();
 			templTable.setModel(getTableModel());
 			templTable.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
 			templTable.getTableHeader().setReorderingAllowed(false);
 			templTable.setRowHeight(22);
 			
+//			templTable.setCellSelectionEnabled(true);
+			templTable.setColumnSelectionAllowed(true);
+//			templTable.setRowSelectionAllowed(true);
+			templTable.setSelectionMode(//ListSelectionModel.SINGLE_SELECTION
+			        ListSelectionModel.SINGLE_INTERVAL_SELECTION
+			        //ListSelectionModel.MULTIPLE_INTERVAL_SELECTION
+			        );
 	        // Remove column of raw data
 			TableColumnModel columnModel = templTable.getColumnModel();
 			
@@ -225,30 +256,6 @@ public class RoutingTemplatePanel extends JPanel {
 		}
 		return tableModel;
 	}
-	/**
-	 * This method initializes jScrollPane	
-	 * 	
-	 * @return javax.swing.JScrollPane	
-	 */    
-	private JScrollPane getTableScrollPanel() {
-		if (tableScrollPanel == null) {
-			tableScrollPanel = new JScrollPane();
-			tableScrollPanel.setViewportView(getTemplTable());
-		}
-		return tableScrollPanel;
-	}
-	/**
-	 * This method initializes jScrollPane2	
-	 * 	
-	 * @return javax.swing.JScrollPane	
-	 */    
-	private JScrollPane getTreeScrollPanel() {
-		if (treeScrollPanel == null) {
-			treeScrollPanel = new JScrollPane();
-			treeScrollPanel.setViewportView(getJTree());
-		}
-		return treeScrollPanel;
-	}
     /**
      * @param ouidCategory
      */
@@ -269,7 +276,7 @@ public class RoutingTemplatePanel extends JPanel {
             return;
         
         try {
-	        // search WorkCenter by it's workshop field value
+	        // search
             String categoryFieldOuidOfWorkTemplate = "86057290";
             HashMap searchCondition = new HashMap();
             searchCondition.put(categoryFieldOuidOfWorkTemplate,
@@ -291,7 +298,6 @@ public class RoutingTemplatePanel extends JPanel {
                         continue;
                     
                     addRowToTable(dosTempl);
-//                    tableModel.cbxWorkCenter.addItem(new DOSObjectAdapter(dosWorkCenter, "%md$number% %md$description%"));
                     tempList = null;
                 }
             }

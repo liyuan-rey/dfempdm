@@ -10,7 +10,6 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.EventObject;
 
 import javax.swing.AbstractCellEditor;
 import javax.swing.JButton;
@@ -28,7 +27,7 @@ import dyna.framework.service.dos.DOSChangeable;
 /**
  * @author ภ๎ิจ
  */
-public class FileCellEditor extends AbstractCellEditor implements
+public class AttachmentCellEditor extends AbstractCellEditor implements
         TableCellEditor {
 
     private JFrame parentFrame = null;
@@ -38,7 +37,7 @@ public class FileCellEditor extends AbstractCellEditor implements
 
     private DOSChangeable dosRouting = null;
     
-    public FileCellEditor(JFrame parent) {
+    public AttachmentCellEditor(JFrame parent) {
         parentFrame = parent;
         
         // editor
@@ -82,21 +81,6 @@ public class FileCellEditor extends AbstractCellEditor implements
     }
 
     /* (non-Javadoc)
-     * @see javax.swing.CellEditor#cancelCellEditing()
-     */
-    public void cancelCellEditing() {
-		super.cancelCellEditing();
-    }
-
-    /* (non-Javadoc)
-     * @see javax.swing.CellEditor#stopCellEditing()
-     */
-    public boolean stopCellEditing() {
-		super.stopCellEditing();
-		return true;
-    }
-
-    /* (non-Javadoc)
      * @see javax.swing.CellEditor#getCellEditorValue()
      */
     public Object getCellEditorValue() {
@@ -113,13 +97,6 @@ public class FileCellEditor extends AbstractCellEditor implements
         }
         
         return txtValue.getText();
-    }
-
-    /* (non-Javadoc)
-     * @see javax.swing.CellEditor#shouldSelectCell(java.util.EventObject)
-     */
-    public boolean shouldSelectCell(EventObject anEvent) {
-        return true;
     }
 
     private void ShowFileDialog() {

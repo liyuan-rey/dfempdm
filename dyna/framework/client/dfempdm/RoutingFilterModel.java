@@ -15,12 +15,13 @@ import javax.swing.event.TableModelEvent;
  */
 public class RoutingFilterModel extends AbstractTableModel implements
         TableModelListener {
-    public static final String FILTER_ALL = "-所有-";
-    
+
     protected JTable table = null;
     protected RoutingTableModel model = null;
-    private String matchOpSpec = "";
+    private String ouidMatchWorkshop = "";
+    private String ouidMatchOpSpec = "";
 
+    
     public RoutingFilterModel(JTable table, RoutingTableModel model) {
         this.table = table;
         this.model = model;
@@ -28,8 +29,9 @@ public class RoutingFilterModel extends AbstractTableModel implements
         model.addTableModelListener(this);
     }
 
-    public void setMatchOpSpec(String matchOpSpec) {
-        this.matchOpSpec = matchOpSpec;
+    public void setFilterInfo(String ouidWorkshop, String ouidOpSpec) {
+        ouidMatchWorkshop = ouidWorkshop;
+        ouidMatchOpSpec = ouidOpSpec;
     }
 
     public int getRowCount() {
@@ -37,18 +39,12 @@ public class RoutingFilterModel extends AbstractTableModel implements
         int viewCount = count;
 
         if (needFilter()) {
-            Object value = null;
-
-            for (int i = 0; i < count; i++) {
-                value = model.getValueAt(i,
-                        RoutingTableModel.OPERATION_SPECIALTY_COLUMN);
-                if (!matchOpSpec.equals(value))
-                    viewCount--;
-            }
-
-            value = null;
+	        for (int i = 0; i < count; i++) {
+	            if (!isMatch(i))
+	                viewCount--;
+	        }
         }
-
+        
         return viewCount;
     }
 
@@ -86,45 +82,62 @@ public class RoutingFilterModel extends AbstractTableModel implements
     }
 
     // tool func
-    
+
     public boolean needFilter() {
-        return (matchOpSpec != null && !"".equals(matchOpSpec) && !FILTER_ALL.equals(matchOpSpec));
+        return !((ouidMatchWorkshop == null || "".equals(ouidMatchWorkshop))
+                && (ouidMatchOpSpec == null || "".equals(ouidMatchOpSpec)));
+    }
+
+    public boolean isMatch(int row) {
+        Object value = null;
+
+        // 以加工分厂条件过滤
+        value = model.getValueAt(row, RoutingTableModel.RAW_WORKSHOP_COLUMN);
+
+        if (!ouidMatchWorkshop.equals("") && !ouidMatchWorkshop.equals(value))
+            return false;
+
+        // 以工艺专业类型条件过滤
+        value = model.getValueAt(row,
+                RoutingTableModel.RAW_OPERATION_SPECIALTY_COLUMN);
+
+        if (!ouidMatchOpSpec.equals("") && !ouidMatchOpSpec.equals(value))
+            return false;
+
+        return true;
     }
 
     public int convertRowIndexToModel(int viewRowIndex) {
         if (!needFilter())
             return viewRowIndex;
-        
-        // need filter
+
         int modelIndex = -1;
 
         int count = model.getRowCount();
-        Object value = null;
-
-        for (int i = 0; i < count && modelIndex < viewRowIndex; i++) {
-            value = model.getValueAt(i,
-                    RoutingTableModel.OPERATION_SPECIALTY_COLUMN);
-            if (matchOpSpec.equals(value))
-                modelIndex = i;
+        for (int i = 0; i < count; i++) {
+            if (isMatch(i)) {
+                viewRowIndex--;
+                
+                if (viewRowIndex < 0) {
+                    modelIndex = i;
+                    break;
+                }
+            }
         }
-
-        value = null;
 
         return modelIndex;
     }
 
-    public int convertColumnIndexToView(int modelRowIndex) {
+    public int convertRowIndexToView(int modelRowIndex) {
+        if (!needFilter())
+            return modelRowIndex;
+
         int viewIndex = -1;
 
-        Object value = null;
         for (int i = 0; i <= modelRowIndex; i++) {
-            value = model.getValueAt(i,
-                    RoutingTableModel.OPERATION_SPECIALTY_COLUMN);
-            if (!matchOpSpec.equals(value))
+            if (isMatch(i))
                 viewIndex++;
         }
-
-        value = null;
 
         return viewIndex;
     }

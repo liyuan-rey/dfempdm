@@ -5,6 +5,7 @@
 package dyna.framework.client.dfempdm;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -13,8 +14,6 @@ import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -40,13 +39,21 @@ import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.JTree;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.text.JTextComponent;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
 
 import com.jgoodies.swing.ExtToolBar;
 import com.jgoodies.swing.util.ToolBarButton;
@@ -82,7 +89,7 @@ public class RoutingEditor extends JFrame {
     private JComboBox cbxXSquence = null; // 开始/结束工序
     private JTextField txtXTime = null;
     private JTextField txtOperatorNum = null;
-    private FileCellEditor fceAttachment = null;
+    private AttachmentCellEditor aceAttachment = null;
 
     private JPanel jPanelRoot = null;
     private ExtToolBar jToolBar = null;
@@ -122,8 +129,13 @@ public class RoutingEditor extends JFrame {
     private ToolBarButton btnSaveAs = null;
     private ListSelectionListener colSelListener = null;
 
-    private JComboBox cbxFilter = null;
-
+	private JTree tvwFilter = null;  //  @jve:decl-index=0:
+    private DefaultMutableTreeNode tndFilterRoot = null;
+	private JSplitPane jSplitPaneRouting = null;
+	private JScrollPane jScrollPaneTree = null;
+	private ToolBarButton btnCut = null;
+	private ToolBarButton btnCopy = null;
+	private ToolBarButton btnPaste = null;
     /**
      * This method initializes
      *  
@@ -191,6 +203,10 @@ public class RoutingEditor extends JFrame {
             jToolBar.add(getBtnAdd());
             jToolBar.add(getBtnRemove());
             jToolBar.add(Box.createHorizontalStrut(5));
+            jToolBar.add(getBtnCut());
+            jToolBar.add(getBtnCopy());
+            jToolBar.add(getBtnPaste());
+            jToolBar.add(Box.createHorizontalStrut(5));
             jToolBar.add(getBtnUp());
             jToolBar.add(getBtnDown());
             jToolBar.add(Box.createHorizontalStrut(5));
@@ -202,7 +218,6 @@ public class RoutingEditor extends JFrame {
             jToolBar.add(Box.createHorizontalStrut(2));
             jToolBar.add(getBtnSearch());
             jToolBar.add(Box.createHorizontalStrut(10));
-            jToolBar.add(getCbxFilter());
         }
         return jToolBar;
     }
@@ -217,7 +232,7 @@ public class RoutingEditor extends JFrame {
             jPanelContent = new JPanel();
             jPanelContent.setLayout(new BorderLayout());
             jPanelContent.add(getInnerFrameInfo(), java.awt.BorderLayout.NORTH);
-            jPanelContent.add(getJSplitPane(), java.awt.BorderLayout.CENTER);
+            jPanelContent.add(getJSplitPaneRouting(), java.awt.BorderLayout.CENTER);
         }
         return jPanelContent;
     }
@@ -301,35 +316,6 @@ public class RoutingEditor extends JFrame {
     }
 
     /**
-     * This method initializes jComboBox
-     * 
-     * @return javax.swing.JComboBox
-     */
-    private JComboBox getCbxFilter() {
-        if (cbxFilter == null) {
-            cbxFilter = new JComboBox();
-            cbxFilter.setPreferredSize(new java.awt.Dimension(180, 22));
-            cbxFilter.setMaximumSize(new java.awt.Dimension(180, 22));
-
-            cbxFilter.addActionListener(new ActionListener() {
-
-                public void actionPerformed(ActionEvent e) {
-                    Object obj = cbxFilter.getSelectedItem();
-                    if (obj != null) {
-                        TableCellEditor editor = routingTable.getCellEditor();
-                        if (editor != null)
-                            editor.stopCellEditing();
-
-                        filterModel.setMatchOpSpec(obj.toString());
-	                    filterModel.fireTableDataChanged();
-                    }
-                }
-            });
-        }
-        return cbxFilter;
-    }
-
-    /**
      * This method initializes tableModel
      * 
      * @return dyna.framework.client.dfempdm.RoutingTableModel
@@ -357,7 +343,7 @@ public class RoutingEditor extends JFrame {
     /**
      * This method initializes routingTable
      * 
-     * @return dyna.uic.DynaTable
+     * @return javax.swing.JTable
      */
     private JTable getRoutingTable() {
         if (routingTable == null) {
@@ -373,6 +359,20 @@ public class RoutingEditor extends JFrame {
                             return tableModel.getColumnName(realIndex);
                         }
                     };
+                }
+                
+                public TableCellRenderer getCellRenderer(int row, int column) {
+                    final Color clrCut = new Color(255, 220, 220);
+                    final Color clrCopy = new Color(220, 220, 255);
+//                    if ((row == 0) && (column == 0)) {
+//                        return weirdRenderer;
+//                    }
+                    TableCellRenderer renderer = super.getCellRenderer(row, column);
+                    if (renderer instanceof DefaultTableCellRenderer) {
+                        ((DefaultTableCellRenderer)renderer).setBackground(clrCut);
+                    }
+                    
+                    return renderer;
                 }
             };
 
@@ -900,9 +900,6 @@ public class RoutingEditor extends JFrame {
                         return;
                     }
                     
-                    if (!checkFilterModel(true))
-                        return;
-
                     TableCellEditor editor = routingTable.getCellEditor();
                     if (editor != null)
                         editor.stopCellEditing();
@@ -936,17 +933,6 @@ public class RoutingEditor extends JFrame {
         return btnAdd;
     }
 
-    private boolean checkFilterModel(boolean showMsg) {
-        if (filterModel.needFilter()) {
-            if (showMsg)
-                JOptionPane.showMessageDialog(this, "过滤显示模式下无法进行此操作, 请先取消过滤显示模式.");
-            
-            return false;
-        }
-        
-        return true;
-    }
-
     /**
      * This method initializes btnRemove
      * 
@@ -966,9 +952,6 @@ public class RoutingEditor extends JFrame {
                                 "没有权限进行此项操作.");
                         return;
                     }
-
-                    if (!checkFilterModel(true))
-                        return;
 
                     // begin del logic
                     int[] selRows = routingTable.getSelectedRows();
@@ -1007,7 +990,145 @@ public class RoutingEditor extends JFrame {
         return btnRemove;
     }
 
-    /**
+	/**
+	 * This method initializes btnCut	
+	 * 	
+	 * @return com.jgoodies.swing.util.ToolBarButton	
+	 */    
+	private ToolBarButton getBtnCut() {
+        if (btnCut == null) {
+            btnCut = new ToolBarButton(new ImageIcon(getClass().getResource(
+                    "/icons/Cut.gif")));
+            btnCut.setToolTipText("剪切");
+            btnCut.setMaximumSize(new java.awt.Dimension(24, 24));
+            btnCut.setPreferredSize(new java.awt.Dimension(24, 24));
+            btnCut.addActionListener(new java.awt.event.ActionListener() {
+                public void actionPerformed(java.awt.event.ActionEvent e) {
+//                    if (!hasPermission("move up")) {
+//                        JOptionPane.showMessageDialog(RoutingEditor.this,
+//                                "没有权限进行此项操作.");
+//                        return;
+//                    }
+//
+//                    if (!checkFilterModel(true))
+//                        return;
+//
+//                    // 目前不提供同时移动多行的功能, 因为有隔行多选时进行移动的逻辑不确定
+//                    int selRow = routingTable.getSelectedRow();
+//                    if (selRow < 1 || selRow >= routingTable.getRowCount()) // < 1:
+//                                                                            // 第 0
+//                                                                            // 行也不用向上移
+//                        return;
+//
+//                    int selCol = routingTable.getSelectedColumn();
+//
+//                    TableCellEditor editor = routingTable.getCellEditor();
+//                    if (editor != null)
+//                        editor.stopCellEditing();
+//
+//                    tableModel.moveRow(selRow, selRow, selRow - 1);
+//
+//                    routingTable.changeSelection(selRow - 1, selCol, false,
+//                            false);
+                }
+            });
+        }
+        return btnCut;
+	}
+
+	/**
+	 * This method initializes btnCopy	
+	 * 	
+	 * @return com.jgoodies.swing.util.ToolBarButton	
+	 */    
+	private ToolBarButton getBtnCopy() {
+        if (btnCopy == null) {
+            btnCopy = new ToolBarButton(new ImageIcon(getClass().getResource(
+                    "/icons/Copy.gif")));
+            btnCopy.setToolTipText("复制");
+            btnCopy.setMaximumSize(new java.awt.Dimension(24, 24));
+            btnCopy.setPreferredSize(new java.awt.Dimension(24, 24));
+            btnCopy.addActionListener(new java.awt.event.ActionListener() {
+                public void actionPerformed(java.awt.event.ActionEvent e) {
+//                    if (!hasPermission("move up")) {
+//                        JOptionPane.showMessageDialog(RoutingEditor.this,
+//                                "没有权限进行此项操作.");
+//                        return;
+//                    }
+//
+//                    if (!checkFilterModel(true))
+//                        return;
+//
+//                    // 目前不提供同时移动多行的功能, 因为有隔行多选时进行移动的逻辑不确定
+//                    int selRow = routingTable.getSelectedRow();
+//                    if (selRow < 1 || selRow >= routingTable.getRowCount()) // < 1:
+//                                                                            // 第 0
+//                                                                            // 行也不用向上移
+//                        return;
+//
+//                    int selCol = routingTable.getSelectedColumn();
+//
+//                    TableCellEditor editor = routingTable.getCellEditor();
+//                    if (editor != null)
+//                        editor.stopCellEditing();
+//
+//                    tableModel.moveRow(selRow, selRow, selRow - 1);
+//
+//                    routingTable.changeSelection(selRow - 1, selCol, false,
+//                            false);
+                }
+            });
+        }
+        return btnCopy;
+	}
+
+	/**
+	 * This method initializes btnPaste	
+	 * 	
+	 * @return com.jgoodies.swing.util.ToolBarButton	
+	 */    
+	private ToolBarButton getBtnPaste() {
+        if (btnPaste == null) {
+            btnPaste = new ToolBarButton(new ImageIcon(getClass().getResource(
+                    "/icons/Paste.gif")));
+            btnPaste.setToolTipText("粘贴");
+            btnPaste.setMaximumSize(new java.awt.Dimension(24, 24));
+            btnPaste.setPreferredSize(new java.awt.Dimension(24, 24));
+            btnPaste.addActionListener(new java.awt.event.ActionListener() {
+                public void actionPerformed(java.awt.event.ActionEvent e) {
+//                    if (!hasPermission("move up")) {
+//                        JOptionPane.showMessageDialog(RoutingEditor.this,
+//                                "没有权限进行此项操作.");
+//                        return;
+//                    }
+//
+//                    if (!checkFilterModel(true))
+//                        return;
+//
+//                    // 目前不提供同时移动多行的功能, 因为有隔行多选时进行移动的逻辑不确定
+//                    int selRow = routingTable.getSelectedRow();
+//                    if (selRow < 1 || selRow >= routingTable.getRowCount()) // < 1:
+//                                                                            // 第 0
+//                                                                            // 行也不用向上移
+//                        return;
+//
+//                    int selCol = routingTable.getSelectedColumn();
+//
+//                    TableCellEditor editor = routingTable.getCellEditor();
+//                    if (editor != null)
+//                        editor.stopCellEditing();
+//
+//                    tableModel.moveRow(selRow, selRow, selRow - 1);
+//
+//                    routingTable.changeSelection(selRow - 1, selCol, false,
+//                            false);
+                }
+            });
+        }
+        return btnPaste;
+	}
+
+	/**
      * This method initializes btnUp
      * 
      * @return com.jgoodies.swing.util.ToolBarButton
@@ -1026,9 +1147,6 @@ public class RoutingEditor extends JFrame {
                                 "没有权限进行此项操作.");
                         return;
                     }
-
-                    if (!checkFilterModel(true))
-                        return;
 
                     // 目前不提供同时移动多行的功能, 因为有隔行多选时进行移动的逻辑不确定
                     int selRow = routingTable.getSelectedRow();
@@ -1072,9 +1190,6 @@ public class RoutingEditor extends JFrame {
                                 "没有权限进行此项操作.");
                         return;
                     }
-
-                    if (!checkFilterModel(true))
-                        return;
 
                     // 目前不提供同时移动多行的功能, 因为有隔行多选时进行移动的逻辑不确定
                     int selRow = routingTable.getSelectedRow();
@@ -1227,12 +1342,104 @@ public class RoutingEditor extends JFrame {
         return innerFrameInfo;
     }
 
-    /**
+	/**
+	 * This method initializes jSplitPane1	
+	 * 	
+	 * @return javax.swing.JSplitPane	
+	 */    
+	private JSplitPane getJSplitPaneRouting() {
+		if (jSplitPaneRouting == null) {
+			jSplitPaneRouting = new JSplitPane();
+			jSplitPaneRouting.setRightComponent(getJSplitPane());
+			jSplitPaneRouting.setDividerSize(6);
+			jSplitPaneRouting.setDividerLocation(180);
+			jSplitPaneRouting.setOneTouchExpandable(true);
+			jSplitPaneRouting.setLeftComponent(getJScrollPaneTree());
+		}
+		return jSplitPaneRouting;
+	}
+	
+	/**
+	 * This method initializes jScrollPane1	
+	 * 	
+	 * @return javax.swing.JScrollPane	
+	 */    
+	private JScrollPane getJScrollPaneTree() {
+		if (jScrollPaneTree == null) {
+			jScrollPaneTree = new JScrollPane();
+			jScrollPaneTree.setViewportView(getTvwFilter());
+		}
+		return jScrollPaneTree;
+	}
+
+	/**
+	 * This method initializes jTree	
+	 * 	
+	 * @return javax.swing.JTree	
+	 */    
+	private JTree getTvwFilter() {
+		if (tvwFilter == null) {
+		    if (tndFilterRoot == null)
+		        tndFilterRoot = new DefaultMutableTreeNode("分厂工艺路线", true);
+		    
+			tvwFilter = new JTree(tndFilterRoot);
+			tvwFilter.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+			
+		    tvwFilter.getSelectionModel().setSelectionMode(
+		            TreeSelectionModel.SINGLE_TREE_SELECTION);
+		    
+		    tvwFilter.addTreeSelectionListener(new TreeSelectionListener() {
+		        public void valueChanged(TreeSelectionEvent e) {
+                    updateCmdUI();
+
+		            DefaultMutableTreeNode node = (DefaultMutableTreeNode) tvwFilter
+                            .getLastSelectedPathComponent();
+
+                    if (node == null)
+                        return;
+
+	                TableCellEditor editor = routingTable.getCellEditor();
+                    if (editor != null)
+                        editor.stopCellEditing();
+
+                    Object userObject = node.getUserObject();
+                    String ouidWorkshop = "";
+                    String ouidOpSpec = "";
+                    boolean bDataEditable = false;
+                    
+                    if (node.isRoot()) { // 显示全部, 不可编辑
+                        // do nothing
+                    } else if (node.isLeaf()) { // 显示工艺专业类型过滤, 可编辑
+                        DOSObjectAdapter dosObjAdpt = (DOSObjectAdapter)userObject;
+                        ouidOpSpec = (String)dosObjAdpt.get("ouid");
+                        
+                        dosObjAdpt = (DOSObjectAdapter) ((DefaultMutableTreeNode)node.getParent()).getUserObject();
+                        ouidWorkshop = (String)dosObjAdpt.get("ouid");
+                        
+                        bDataEditable = true;
+                    } else { // 显示加工分厂段, 不可编辑
+                        DOSObjectAdapter dosObjAdpt = (DOSObjectAdapter)userObject;
+                        ouidWorkshop = (String)dosObjAdpt.get("ouid");
+                    }
+                    
+                    filterModel.setFilterInfo(ouidWorkshop, ouidOpSpec);
+                    filterModel.fireTableDataChanged();
+                    
+                    tableModel.setEditable(bDataEditable);
+		        }
+		    });
+		}
+		
+		return tvwFilter;
+	}
+	
+	/**
      * @param dosObj
      * @param editMode
      *            0 - 只读，不可做任何操作 1 - 可编辑工序，可添加删除工序，可上下移位，可以操作附件和工序模板 2 -
      *            不可做1的工作，但可以编辑准备时间、操作时间、数量和人数 3 - 具有所有编辑能力 1&2
      * @param authorTypes
+     * 	          当前用户所具有的工艺专业类型的 codeitem 的 ouid 数组
      * @throws IllegalArgumentException
      */
     public void setContextObject(DOSChangeable dosObj, int editMode,
@@ -1473,10 +1680,10 @@ public class RoutingEditor extends JFrame {
         column.setPreferredWidth(36);
 
         // Editor of ATTACHMENT_COLUMN
-        fceAttachment = new FileCellEditor(RoutingEditor.this);
+        aceAttachment = new AttachmentCellEditor(RoutingEditor.this);
 
         column = columnModel.getColumn(RoutingTableModel.ATTACHMENT_COLUMN);
-        column.setCellEditor(fceAttachment);
+        column.setCellEditor(aceAttachment);
 
         column.setPreferredWidth(45);
 
@@ -1491,6 +1698,19 @@ public class RoutingEditor extends JFrame {
                 .getColumn(RoutingTableModel.RAW_WORKSHOP_COLUMN));
         routingTable.removeColumn(columnModel
                 .getColumn(RoutingTableModel.RAW_OUID_COLUMN));
+    }
+
+    private boolean checkFilterModel(boolean showMsg) {
+        //TODO ...
+        if (filterModel.needFilter()) {
+            if (showMsg)
+                JOptionPane.showMessageDialog(this,
+                        "过滤显示模式下无法进行此操作, 请先取消过滤显示模式.");
+
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -1587,7 +1807,7 @@ public class RoutingEditor extends JFrame {
             // 进入/结束工序 ComboBox, 在即将编辑时初始化
 
             // 工艺专业类型过滤器
-            refreshCbxFilter();
+            refreshTvwFilter();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1650,16 +1870,46 @@ public class RoutingEditor extends JFrame {
     }
 
     /**
-     * 刷新工艺专业类型过滤器
+     * 刷新分厂工艺路线树
      */
-    private void refreshCbxFilter() {
+    private void refreshTvwFilter() {
         try {
-            cbxFilter.removeAllItems();
-            cbxFilter.addItem(RoutingFilterModel.FILTER_ALL); // at least we have this one
-            util.refreshCodeComboBox("工艺专业类型", cbxFilter, null, false);
-            cbxFilter.setSelectedIndex(0);
+            tndFilterRoot.removeAllChildren();
+            
+            // 根据已初始化的 cbxWorkshop 内容, 初始化第一层子节点(加工分厂)
+            int nCount = cbxWorkshop.getItemCount();
+            DefaultMutableTreeNode tndWorkshop = null;
+            for (int i = 0; i < nCount; i++) {
+                tndWorkshop = new DefaultMutableTreeNode(
+                        cbxWorkshop.getItemAt(i), true);
+                tndFilterRoot.add(tndWorkshop);
+
+                tndWorkshop = null;
+            }
+
+            // 根据已初始化的 cbxOperationSpecialty 初始化第二层子节点(当前的工艺专业类型)
+            nCount = tndFilterRoot.getChildCount();
+            for (int i = 0; i < nCount; i++) {
+                tndWorkshop = (DefaultMutableTreeNode)tndFilterRoot.getChildAt(i);
+                
+                int nSize = cbxOperationSpecialty.getItemCount();
+                DefaultMutableTreeNode tndOpSpec = null;
+                for (int j = 0; j < nSize; j++) {
+                    tndOpSpec = new DefaultMutableTreeNode(
+                            cbxOperationSpecialty.getItemAt(j), false);
+                    tndWorkshop.add(tndOpSpec);
+                    
+                    tndOpSpec = null;
+                }
+            }
+            
+            // show the first leaf
+            DefaultMutableTreeNode tndFirstLeaf = ((DefaultMutableTreeNode)tndFilterRoot.getFirstChild()).getFirstLeaf();
+            TreePath path = new TreePath(tndFirstLeaf.getPath());
+            tvwFilter.scrollPathToVisible(path);
+            tvwFilter.setSelectionPath(path);
         } catch (Exception e) {
-            System.out.println("更新工艺专业类型过滤器内容时出现错误: " + e);
+            System.out.println("更新分厂工艺路线树内容时出现错误: " + e);
         }
     }
 
@@ -1730,7 +1980,7 @@ public class RoutingEditor extends JFrame {
      */
     private CalculatorPanel getFormulaCalculator() {
         if (calcPanel == null) {
-            calcPanel = new CalculatorPanel();
+            calcPanel = new CalculatorPanel(RoutingEditor.this);
         }
         return calcPanel;
     }
@@ -2140,4 +2390,22 @@ public class RoutingEditor extends JFrame {
         return true;
     }
 
-} //  @jve:decl-index=0:visual-constraint="10,10"
+    private void updateCmdUI() {
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode) tvwFilter
+                .getLastSelectedPathComponent();
+        
+        boolean bEnable = false;
+        
+        if (node != null && node.isLeaf())
+            bEnable = true;
+        
+        btnAdd.setEnabled(bEnable);
+        btnRemove.setEnabled(bEnable);
+        btnCut.setEnabled(bEnable);
+//        btnCopy.setEnabled(bEnable);
+        btnPaste.setEnabled(bEnable);
+        btnUp.setEnabled(bEnable);
+        btnDown.setEnabled(bEnable);
+    }
+
+  } //  @jve:decl-index=0:visual-constraint="10,10"

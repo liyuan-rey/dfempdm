@@ -9,6 +9,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
@@ -26,6 +27,7 @@ import javax.swing.Box;
 import javax.swing.DefaultCellEditor;
 import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -34,8 +36,10 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.JTableHeader;
@@ -53,7 +57,6 @@ import dyna.framework.service.DOS;
 import dyna.framework.service.DSS;
 import dyna.framework.service.dos.DOSChangeable;
 import dyna.uic.MInternalFrame;
-import dyna.uic.DynaTable;
 
 /**
  * @author 李渊
@@ -97,7 +100,7 @@ public class RoutingEditor extends JFrame {
     private JTextField txtDesc = null;
     private RoutingTableModel tableModel = null;
     private JTextField txtWorkshopRouting = null;
-    private DynaTable routingTable = null;
+    private JTable routingTable = null;
     private ExtToolBar mainToolbar = null;
     private ToolBarButton btnSave = null;
     private ToolBarButton btnAdd = null;
@@ -240,9 +243,7 @@ public class RoutingEditor extends JFrame {
     private JScrollPane getJScrollPane() {
         if (jScrollPane == null) {
             jScrollPane = new JScrollPane();
-            jScrollPane.setViewportView(getDynaTable());
-            jScrollPane.setBorder(javax.swing.BorderFactory.createEmptyBorder(
-                    3, 0, 0, 0));
+            jScrollPane.setViewportView(getRoutingTable());
         }
         return jScrollPane;
     }
@@ -342,9 +343,9 @@ public class RoutingEditor extends JFrame {
      * 
      * @return dyna.uic.DynaTable
      */
-    private DynaTable getDynaTable() {
+    private JTable getRoutingTable() {
         if (routingTable == null) {
-            routingTable = new DynaTable() {
+            routingTable = new JTable/*DynaTable*/() {
                 //Implement table header tool tips. 
                 protected JTableHeader createDefaultTableHeader() {
                     return new JTableHeader(columnModel) {
@@ -360,23 +361,32 @@ public class RoutingEditor extends JFrame {
             };
             
             routingTable.setModel(getRoutingTableModel());
-            
+            routingTable.setFocusable(true);
             routingTable.getColumnModel().getSelectionModel()
                     .addListSelectionListener(getColSelListener());
             
-            routingTable.getSelectionModel().addListSelectionListener(
-                    new ListSelectionListener() {
-                // 选中行时, 将选中的对象复制到本地剪贴板
-                public void valueChanged(ListSelectionEvent e) {
-                    doCopyRouting();
-                }
-			});
-            
             routingTable.addMouseListener(new MouseAdapter() {
-                // 鼠标右键粘贴特性, 可以将工序和工序模板对象粘贴为新工序对象
+                // 鼠标左键复制, 右键粘贴特性, 可以将工序和工序模板对象粘贴为新工序对象
                 public void mouseClicked(MouseEvent e) {
-                    if (e.getButton() == MouseEvent.BUTTON3) // 右键
-                        doPasteToRouting();
+                    if (e.getButton() == MouseEvent.BUTTON1) { // 左键
+                        doCopyRouting();
+                    } else if (e.getButton() == MouseEvent.BUTTON3) { // 右键
+                        // 点在"序"列上复制整行, 否则只复制点中的单元格
+                        Point pt = e.getPoint();
+                        int row = routingTable.rowAtPoint(pt);
+                        int col = routingTable.columnAtPoint(pt);
+                        
+                        if (row != -1 && col != -1
+                                && col != RoutingTableModel.SEQUENCE_NO_COLUMN) {
+                            
+                            if (tableModel.isCellEditable(row, col))
+                                doPasteToCell(row, col);
+                        }
+                        else {
+                    	    if (hasPermission("add"))
+                    	        doPasteToRouting();
+                        }
+                    }
                 }
             });
             
@@ -453,35 +463,138 @@ public class RoutingEditor extends JFrame {
 	        return;
         
 	    try {
-//	        final String format =
-//	            "%" + tableModel.getColumnDosName(RoutingTableModel.SEQUENCE_NO_COLUMN) + "%\t" + 
-//	            "%" + tableModel.getColumnDosName(RoutingTableModel.WORKSHOP_COLUMN) + "%\t" +
-//	            "%" + tableModel.getColumnDosName(RoutingTableModel.WORKCENTER_COLUMN) + "%\t" +
-//	            "%" + tableModel.getColumnDosName(RoutingTableModel.OPERATION_SPECIALTY_COLUMN) + "%\t" +
-//	            "%" + tableModel.getColumnDosName(RoutingTableModel.WORKSHOP_SEQUENCE_COLUMN) + "%\t" +
-//	            "%" + tableModel.getColumnDosName(RoutingTableModel.DESCRIPTION_COLUMN) + "%\t" +
-//	            "%" + tableModel.getColumnDosName(RoutingTableModel.ROUTING_CATEGORY_COLUMN) + "%\n";
-//	        
-//		    // Prepare clipboard data
-//		    DOSArrayList datas = new DOSArrayList(selRows.length);
-//	
-//		    for (int i = 0; i < selRows.length; i++) {
-//		        String ouid = (String)tableModel.getValueAt(selRows[i], RAW_OUID_COLUMN);
-//		        DOSChangeable dosObj = dos.get(ouid);
-//		        datas.add(new DOSObjectAdapter(dosObj, format, DOSObjectAdapter.ROUTING_TEMPLATE));
-//		    }
-//		    
-//		    DOSObjectSelection selection = new DOSObjectSelection(datas);
-//		    
-//		    // Copy to local clipboard
-//		    RoutingEditor.clipboard.setContents(selection, null);
-//		    
-////		    // Copy to system clipboard
-////		    Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-////		    clipboard.setContents(selection, null);
+	        final String format =
+	            "%" + RoutingTableModel.getColumnDosName(RoutingTableModel.SEQUENCE_NO_COLUMN) + "%\t" + 
+	            "%" + RoutingTableModel.getColumnDosName(RoutingTableModel.WORKSHOP_COLUMN) + "%\t" +
+	            "%" + RoutingTableModel.getColumnDosName(RoutingTableModel.WORKCENTER_COLUMN) + "%\t" +
+                "%" + RoutingTableModel.getColumnDosName(RoutingTableModel.WORKSHOP_SEQUENCE_COLUMN) + "%\t" +
+	            "%" + RoutingTableModel.getColumnDosName(RoutingTableModel.OPERATION_SPECIALTY_COLUMN) + "%\t" +
+	            "%" + RoutingTableModel.getColumnDosName(RoutingTableModel.DESCRIPTION_COLUMN) + "%\n";
+	        
+		    // Prepare clipboard data
+		    DOSArrayList datas = new DOSArrayList(selRows.length);
+	
+		    for (int i = 0; i < selRows.length; i++) {
+		        DOSChangeable dosObj = tableModel.getRawData(selRows[i]);
+		        datas.add(new DOSObjectAdapter(dosObj, format, DOSObjectAdapter.ROUTING));
+		    }
+		    
+		    DOSObjectSelection selection = new DOSObjectSelection(datas);
+		    
+		    // Copy to local clipboard
+		    RoutingEditor.clipboard.setContents(selection, null);
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	    }
+    }
+
+    private void doPasteToCell(int row, int col) {
+        Transferable contents = clipboard.getContents(null);
+        if (contents == null)
+            return;
+        
+        try {
+            DataFlavor flavor = new DataFlavor("application/x-java-jvm-local-objectref;class=" + DOSArrayList.class.getName());
+            
+            if (contents.isDataFlavorSupported(flavor) == false)
+                return;
+            
+            DOSArrayList dosObjects = (DOSArrayList)contents.getTransferData(flavor);
+            if (dosObjects.size() < 1)
+                return;
+            
+    	    DOSObjectAdapter dosAdapter = (DOSObjectAdapter)dosObjects.get(0);
+    	    DOSChangeable dosTemp = dosAdapter.getDosObject();
+    	    
+    	    switch (col) {
+    	    case RoutingTableModel.WORKSHOP_COLUMN: // 加工分厂和工作中心相关, 
+    	    case RoutingTableModel.WORKCENTER_COLUMN: { // 需要同时更改值
+	    	    int [][] updateIndex = {
+    	    	        {RoutingTableModel.WORKSHOP_COLUMN, RoutingTemplatePanel.WORKSHOP_COLUMN},
+	    	            {RoutingTableModel.RAW_WORKSHOP_COLUMN, RoutingTemplatePanel.RAW_WORKSHOP_COLUMN},
+	    	            {RoutingTableModel.WORKCENTER_COLUMN, RoutingTemplatePanel.WORKCENTER_COLUMN},
+	    	            {RoutingTableModel.RAW_WORKCENTER_COLUMN, RoutingTemplatePanel.RAW_WORKCENTER_COLUMN} };
+
+    	        DOSChangeable dosObject = tableModel.getRawData(row);
+    	    	String tmpValue = null;
+
+    	    	int dosObjectType = dosAdapter.getDosType();
+    	    	if (dosObjectType == DOSObjectAdapter.ROUTING) {
+    	    	    for (int i = 0; i < updateIndex.length; i++) {
+        	    	    tmpValue = (String)dosTemp.get(RoutingTableModel.getColumnDosName(updateIndex[i][0]));
+        	    	    dosObject.put(RoutingTableModel.getColumnDosName(updateIndex[i][0]), tmpValue);
+    	    	    }
+    	    	} else if (dosObjectType == DOSObjectAdapter.ROUTING_TEMPLATE) {
+    	    	    for (int i = 0; i < updateIndex.length; i++) {
+        	    	    tmpValue = (String)dosTemp.get(RoutingTemplatePanel.getColumnDosName(updateIndex[i][1]));
+        	    	    dosObject.put(RoutingTemplatePanel.getColumnDosName(updateIndex[i][1]), tmpValue);
+    	    	    }
+    	    	}
+    	    	
+    	        tableModel.fireTableRowsUpdated(row, row);
+    	        break;
+    	    }
+    	    case RoutingTableModel.OPERATION_SPECIALTY_COLUMN:
+    		    // 如果是要写 "工艺专业类型" 列, 则检查要写入的值是否与传入的 authorType 冲突,
+    	        // 而且不能调用 setValueAt 方法, 需要通过model.getRawData 自己写入
+    	        // OPERATION_SPECIALTY_COLUMN 和 RAW_OPERATION_SPECIALTY_COLUMN.
+    	        // 目前不允许粘贴
+//				String ouidOpSpec = (String)dosTemp.get(
+//					RoutingTableModel.getColumnDosName(
+//		        		RoutingTableModel.RAW_OPERATION_SPECIALTY_COLUMN));
+//		        if (tableModel.authorTypes.contains(ouidOpSpec) == false)
+//		            return;
+    	        break;
+    	    
+    	    case RoutingTableModel.SEQUENCE_TYPE_COLUMN: {
+    	        // 不应该使用 setValueAt 方法, 因为从传入的 value 值获得 CodeItem 对
+                // 象并不保险, 比如 CodeItem 的 Name 中包含空格时, 就无法正确分割字符串
+    	        DOSChangeable dosObject = tableModel.getRawData(row);
+    	    	String tmpValue = null;
+    	    	int dosObjectType = dosAdapter.getDosType();
+    	    	if (dosObjectType == DOSObjectAdapter.ROUTING) {
+			    	tmpValue = (String)dosTemp.get(RoutingTableModel.getColumnDosName(RoutingTableModel.SEQUENCE_TYPE_COLUMN));
+		    	    dosObject.put(RoutingTableModel.getColumnDosName(RoutingTableModel.SEQUENCE_TYPE_COLUMN), tmpValue);
+	
+			    	tmpValue = (String)dosTemp.get(RoutingTableModel.getColumnDosName(RoutingTableModel.RAW_SEQUENCE_TYPE_COLUMN));
+		    	    dosObject.put(RoutingTableModel.getColumnDosName(RoutingTableModel.RAW_SEQUENCE_TYPE_COLUMN), tmpValue);
+    	    	} else if (dosObjectType == DOSObjectAdapter.ROUTING_TEMPLATE) {
+    	    	    // Do NOTHING, since routing template has no SEQUENCE_TYPE_COLUMN
+    	    	}
+    	    	
+    	    	tableModel.fireTableRowsUpdated(row, row);
+	    	    break;
+    	    }
+    	    default: { // 其它没有约束的列用以下办法
+        	    Object newValue = null;
+	    	    int dosObjectType = dosAdapter.getDosType();
+	            if (dosObjectType == DOSObjectAdapter.ROUTING) {
+	                newValue = dosTemp.get(RoutingTableModel.getColumnDosName(col));
+	            	routingTable.setValueAt(newValue, row, col);
+	            } else if (dosObjectType == DOSObjectAdapter.ROUTING_TEMPLATE) {
+	                // 查找字段映射表, 如果能够映射则进行粘贴
+	                boolean found = false;
+	            	for (int i = 0; i < RoutingTableModel.mapping.length; i++)
+	            	    if (col == RoutingTableModel.mapping[i][1]) {
+	            	        found = true;
+	            	        break;
+	            	    }
+	                
+	            	if (!found)
+	            	    return;
+	            	
+		            newValue = dosTemp.get(RoutingTemplatePanel.getColumnDosName(col));
+			        routingTable.setValueAt(newValue, row, col);
+	            }
+	
+	            newValue = null;
+	            dosTemp = null;
+	            dosAdapter = null;
+    	    }
+    	    }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -1387,8 +1500,8 @@ public class RoutingEditor extends JFrame {
 			jTabbedPane.setTabPlacement(javax.swing.JTabbedPane.LEFT);
 			jTabbedPane.setMaximumSize(new java.awt.Dimension(32767,180));
 			jTabbedPane.addTab("工序模板", null, getRoutingTemplatePanel(), null);
-			jTabbedPane.addTab("公式计算器", null, getFormulaCalculator(), null);
 			jTabbedPane.addTab("描述编辑器", null, getTextAreaPanel(), null);
+			jTabbedPane.addTab("公式计算器", null, getFormulaCalculator(), null);
 		}
 		return jTabbedPane;
 	}
@@ -1591,10 +1704,21 @@ public class RoutingEditor extends JFrame {
                 dosRouting = tableModel.getRawData(i);
                 ouid = (String)dosRouting.get("ouid");
                 
-                if (ouid == null || ouid.equals("")) // 新增对象
-                    dos.add(dosRouting);
-                else // 更新对象
-                    dos.set(dosRouting);
+                if (ouid == null || ouid.equals("")) { // 新增对象
+                    String tmpString = dos.add(dosRouting);
+                    dosRouting.put("ouid", tmpString);
+                    // 设置对象的ouid
+                    String newOuid = tmpString.substring(tmpString.indexOf("@")+1);
+                    dosRouting.setOuid(newOuid);
+                    // 同零部件建立关联关系
+                    dos.link((String)contextObject.get("ouid"), (String)dosRouting.get("ouid"));
+                    System.out.println("Object added - " + tmpString);
+                } else { // 更新对象
+                    /*if (dosRouting.isChanged())*/ {
+                        dos.set(dosRouting);
+                        System.out.println("Object updated - " + ouid);
+                    }
+                }
                 
                 // 过滤出需删除的对象列表
                 if (oldRoutings.contains(ouid))
@@ -1606,8 +1730,11 @@ public class RoutingEditor extends JFrame {
             
             // 处理需要删除的数据
             size = oldRoutings.size();
-            for (int i = 0; i < size; i++ )
-                dos.remove((String)oldRoutings.get(i));
+            for (int i = 0; i < size; i++ ) {
+                String ouidRouting = (String)oldRoutings.get(i);
+                dos.remove(ouidRouting);
+                System.out.println("Object deleted - " + ouidRouting);
+            }
             
             // 更改零部件对象更新标识
             Object changeMark = contextObject.get("Operation Mark");
@@ -1652,25 +1779,38 @@ public class RoutingEditor extends JFrame {
                 case RoutingTableModel.ENTER_SEQUENCE_COLUMN:
                 case RoutingTableModel.END_SEQUENCE_COLUMN:
                     Object tmpObject = routingTable.getValueAt(i, RoutingTableModel.SEQUENCE_TYPE_COLUMN);
-                    if (tmpObject != null && tmpObject.toString().equals("并行顺序 [1]"))
-                        if (tmpString.equals(""))
+                	Integer intValue = null;
+                	
+                    if (tmpObject != null && tmpObject.toString().equals("并行顺序 [1]")) {
+                        if (value == null || tmpString.equals(""))
                             msg += "第 " + (i+1) + " 行, 并行工序必须有" + routingTable.getColumnName(j) + ";\n";
-                        else if (j == RoutingTableModel.END_SEQUENCE_COLUMN) {
+                        else {
+                            try {
+                                intValue = new Integer(tmpString);
+                                if (intValue.intValue() > (routingTable.getRowCount())*10) {
+                                    msg += "第 " + (i+1) + " 行, " + routingTable.getColumnName(j) + "值范围超限;\n";
+                                    break;
+                                }
+                            } catch (NumberFormatException nfe) {
+                                msg += "第 " + (i+1) + " 行, " + routingTable.getColumnName(j) + "必须填入有效整数;\n";
+                            }
+                        }
+                    
+                        if (j == RoutingTableModel.END_SEQUENCE_COLUMN
+                                && value != null && tmpString.equals("") == false) {
                             tmpObject = routingTable.getValueAt(i, RoutingTableModel.ENTER_SEQUENCE_COLUMN);
-                            if (Integer.parseInt(tmpObject.toString()) >= Integer.parseInt(tmpString))
+                            if (tmpObject != null && Integer.parseInt(tmpObject.toString()) >= Integer.parseInt(tmpString))
                                 msg += "第 " + (i+1) + " 行, 结束工序不能早于起始工序;\n";
                         }
+                    }
+                    
+                    tableModel.getRawData(i).put(RoutingTableModel.getColumnDosName(j), intValue);
                     break;
                 case RoutingTableModel.PREPARATION_TIME_COLUMN:
                 case RoutingTableModel.OPERATING_TIME_COLUMN:
                     try {
-                        if (value != null) {
-                            Object fixedValue = null;
-                            if (!tmpString.equals("")) {
-                                fixedValue = new Float(tmpString);
-                            tableModel.getRawData(i).put(tableModel.getColumnDosName(j), fixedValue);
-                            }
-                        }
+                        if (value != null)
+                            tableModel.getRawData(i).put(RoutingTableModel.getColumnDosName(j), new Float(tmpString));
                     } catch (NumberFormatException nfe) {
                         msg += "第 " + (i+1) + " 行, " + routingTable.getColumnName(j) + "必须填入有效浮点数;\n";
                     }
@@ -1679,9 +1819,8 @@ public class RoutingEditor extends JFrame {
                 case RoutingTableModel.PROCESS_NUM_COLUMN:
                 case RoutingTableModel.OPERATOR_NUM_COLUMN:
                     try {
-                        if (tmpString != null/* && !tmpString.equals("")*/)
-                           Integer.parseInt(tmpString);
-                        	tableModel.getRawData(i).put(tableModel.getColumnDosName(j), new Float(tmpString));
+                        if (value != null/* && !tmpString.equals("")*/)
+                        	tableModel.getRawData(i).put(RoutingTableModel.getColumnDosName(j), new Integer(tmpString));
                     } catch (NumberFormatException nfe) {
                         msg += "第 " + (i+1) + " 行, " + routingTable.getColumnName(j) + "必须填入有效整数;\n";
                     }
@@ -1691,13 +1830,38 @@ public class RoutingEditor extends JFrame {
         }
         
         if (msg.length() > 0) {
-            JOptionPane.showMessageDialog(this, "下列数据填写不正确:\n" + msg + "请修正后重新保存.");
+            JDialog msgDlg = createInformationDialog(this, "提示", "下列数据填写不正确:\n" + msg + "请修正后重新保存.");
+            msgDlg.show();
+            msgDlg = null;
+            
             return false;
         }
         
         return true;
     }
 
+    private static JDialog createInformationDialog(JFrame parent, String title, String msg) {
+        JDialog dialog = new JDialog(parent, title, true);
+        
+        JTextArea content = new JTextArea(msg);
+        content.setEditable(false);
+
+	    JScrollPane scrollPane = new JScrollPane();
+	    scrollPane.setViewportView(content);
+
+        JPanel panel = new JPanel();
+        panel.setLayout(new BorderLayout());
+        panel.setBorder(new EmptyBorder(5,5,5,5));
+        panel.add(scrollPane, BorderLayout.CENTER);
+        
+        dialog.setContentPane(panel);
+        
+        dialog.setSize(250, 380);
+        CenterWindow(parent, dialog);
+        
+        return dialog;
+    }
+    
 	/**
 	 * This method initializes textAreaPanel	
 	 * 	

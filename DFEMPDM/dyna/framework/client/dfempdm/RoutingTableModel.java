@@ -64,7 +64,7 @@ public class RoutingTableModel extends AbstractTableModel {
     int editMode = 0;
     ArrayList authorTypes = new ArrayList();
 
-    private static final int [][] mapping = { // {工序模板对象需要写入的字段, 对应的工序对象字段}
+    static final int [][] mapping = { // {工序模板对象需要写入的字段, 对应的工序对象字段}
         {RoutingTemplatePanel.SEQUENCE_NO_COLUMN, RoutingTableModel.SEQUENCE_NO_COLUMN},
         {RoutingTemplatePanel.WORKSHOP_COLUMN, RoutingTableModel.WORKSHOP_COLUMN},
         {RoutingTemplatePanel.WORKCENTER_COLUMN, RoutingTableModel.WORKCENTER_COLUMN},
@@ -99,7 +99,7 @@ public class RoutingTableModel extends AbstractTableModel {
         return columnInfo[col][0];
     }
 
-    public String getColumnDosName(int col) {
+    public static String getColumnDosName(int col) {
         return columnInfo[col][1];
     }
 
@@ -115,7 +115,7 @@ public class RoutingTableModel extends AbstractTableModel {
 		    objReturn = dosRouting.get(columnInfo[col][1]);
 	    }
 	    
-		return objReturn;
+		return objReturn == null ? null : objReturn.toString();
 	}
 
 	/* 对变更数据进行验证
@@ -182,30 +182,66 @@ public class RoutingTableModel extends AbstractTableModel {
         if (isCellEditable(row, col) == false)
             return;
         
-        // 更新显式的值
         DOSChangeable dosRouting = (DOSChangeable)data.get(row);
-        dosRouting.put(columnInfo[col][1], value == null ? "" : value.toString());
 	    
-        // 同时更新隐藏的对应 ouid
+        // 更新隐藏的 ouid
         if (col == WORKSHOP_COLUMN || col == WORKCENTER_COLUMN
                 || col == OPERATION_SPECIALTY_COLUMN || col == SEQUENCE_TYPE_COLUMN) {
             int colToUpdate = -1;
-            if (col == WORKSHOP_COLUMN)
+            String codeName = null;
+            if (col == WORKSHOP_COLUMN) {
                 colToUpdate = RAW_WORKSHOP_COLUMN;
-            else if (col == WORKCENTER_COLUMN)
+                codeName = "分厂";
+            } else if (col == WORKCENTER_COLUMN) {
                 colToUpdate = RAW_WORKCENTER_COLUMN;
-            else if (col == OPERATION_SPECIALTY_COLUMN)
+                codeName = "工作中心类别";
+            } else if (col == OPERATION_SPECIALTY_COLUMN) {
                 colToUpdate = RAW_OPERATION_SPECIALTY_COLUMN;
-            else if (col == SEQUENCE_TYPE_COLUMN)
+                codeName = "工艺专业类型";
+            } else if (col == SEQUENCE_TYPE_COLUMN) {
                 colToUpdate = RAW_SEQUENCE_TYPE_COLUMN;
+                codeName = "工序顺序类型";
+            }
             
-            if (value != null && value instanceof DOSObjectAdapter) {
-                DOSChangeable dosObj = ((DOSObjectAdapter)value).getDosObject();
-                String ouid = (dosObj == null ? "" : (String)dosObj.get("ouid"));
-                dosRouting.put(columnInfo[colToUpdate][1], ouid);
+            if (value == null)
+                dosRouting.put(columnInfo[colToUpdate][1], null);
+            else {
+                if (value instanceof DOSObjectAdapter) {
+                    DOSChangeable dosObj = ((DOSObjectAdapter)value).getDosObject();
+                    String ouid = (dosObj == null ? "" : (String)dosObj.get("ouid"));
+                    dosRouting.put(columnInfo[colToUpdate][1], ouid);
+                } else { // This case will match when call by paste function.
+/*                    if (col != WORKCENTER_COLUMN) { // 操作非工作中心值, 都是Code 类型的属性
+                        try {
+	                        String [] pieces = value.toString().split(" ");
+	                        if (pieces.length < 1 || pieces[0].equals(""))
+	                            return;
+	                        
+	                        DOSChangeable dosCode = DynaMOAD.dos.getCodeWithName(codeName);
+	                        String ouidCode = (String)dosCode.get("ouid");
+	
+	                        DOSChangeable dosCodeItem = DynaMOAD.dos.getCodeItemWithName(ouidCode, pieces[0]);
+	                        dosRouting.put(columnInfo[colToUpdate][1],
+	                                dosCodeItem == null ? null : (String)dosCodeItem.get("ouid"));
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            return;
+                        }
+                    } else { // 操作工作中心值, Object 类型
+                        // 有 authorType 值限制, 直接不允许写入值, 用户必须自己选
+                        return;
+                    }
+*/
+                    Exception e = new Exception("Unexcept call about setValueAt.");
+                    e.printStackTrace();
+                    return;
+                }
             }
         }
     
+        // 更新显式的值
+        dosRouting.put(columnInfo[col][1], value == null ? null : value.toString());
+
         fireTableRowsUpdated(row, row);
     }
 
@@ -275,7 +311,9 @@ public class RoutingTableModel extends AbstractTableModel {
             DOSChangeable dosLastRouting = (DOSChangeable)data.get(getRowCount()-1);
             
             dosNewRouting.put(columnInfo[WORKSHOP_COLUMN][1], dosLastRouting.get(columnInfo[WORKSHOP_COLUMN][1]));
+            dosNewRouting.put(columnInfo[RAW_WORKSHOP_COLUMN][1], dosLastRouting.get(columnInfo[RAW_WORKSHOP_COLUMN][1]));
             dosNewRouting.put(columnInfo[OPERATION_SPECIALTY_COLUMN][1], dosLastRouting.get(columnInfo[OPERATION_SPECIALTY_COLUMN][1]));
+            dosNewRouting.put(columnInfo[RAW_OPERATION_SPECIALTY_COLUMN][1], dosLastRouting.get(columnInfo[RAW_OPERATION_SPECIALTY_COLUMN][1]));
             dosNewRouting.put(columnInfo[WORKSHOP_SEQUENCE_COLUMN][1], dosLastRouting.get(columnInfo[WORKSHOP_SEQUENCE_COLUMN][1]));
         }
         

@@ -16,6 +16,7 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
 
@@ -75,12 +76,13 @@ class CodeSelectDialog extends JDialog {
 	    JLabel label = new JLabel("请选择要另存为的模板类别:");
 	    label.setBorder(new EmptyBorder(0,0,3,0));
 	    
-	    codeTree.setBorder(new EtchedBorder(EtchedBorder.LOWERED));
+	    JScrollPane scrollPane = new JScrollPane();
+	    scrollPane.setViewportView(codeTree);
 	    
 	    JPanel panel = new JPanel();
 	    panel.setLayout(new BorderLayout());
         panel.add(label, BorderLayout.NORTH);
-	    panel.add(codeTree, BorderLayout.CENTER);
+	    panel.add(scrollPane, BorderLayout.CENTER);
 	    panel.add(bottomPanel, BorderLayout.SOUTH);
 	    panel.setBorder(new EmptyBorder(5,5,5,5));
 	    

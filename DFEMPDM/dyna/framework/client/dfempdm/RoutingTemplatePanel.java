@@ -5,7 +5,6 @@
 package dyna.framework.client.dfempdm;
 
 import java.awt.BorderLayout;
-import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -15,11 +14,7 @@ import java.util.Vector;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-
-import dyna.framework.service.DOS;
-import dyna.framework.service.dos.DOSChangeable;
-import dyna.uic.DynaTable;
-
+import javax.swing.JTable;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TreeSelectionEvent;
@@ -27,6 +22,10 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 import javax.swing.tree.DefaultMutableTreeNode;
+
+import dyna.framework.service.DOS;
+import dyna.framework.service.dos.DOSChangeable;
+import dyna.uic.DynaTable;
 /**
  * @author 李渊
  *
@@ -63,7 +62,7 @@ public class RoutingTemplatePanel extends JPanel {
 
 	private JSplitPane jSplitPane = null;  //  @jve:decl-index=0:visual-constraint="6,6"
 	private CodeTree codeTree = null;
-	private DynaTable templTable = null;
+	private JTable templTable = null;
 	private JScrollPane tableScrollPanel = null;
 	private JScrollPane treeScrollPanel = null;
 	private DefaultTableModel tableModel = null;   //  @jve:decl-index=0:
@@ -141,9 +140,9 @@ public class RoutingTemplatePanel extends JPanel {
 	 * 	
 	 * @return javax.swing.JTable	
 	 */    
-	public DynaTable getTemplTable() {
+	public JTable getTemplTable() {
 		if (templTable == null) {
-			templTable = new DynaTable();
+			templTable = new JTable/*DynaTable*/();
 			templTable.setModel(getTableModel());
 			templTable.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
 			templTable.getTableHeader().setReorderingAllowed(false);
@@ -158,11 +157,12 @@ public class RoutingTemplatePanel extends JPanel {
 			templTable.removeColumn(columnModel.getColumn(RAW_OUID_COLUMN));
 			templTable.removeColumn(columnModel.getColumn(ROUTING_CATEGORY_COLUMN));
 			
-			templTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-
-			    // 选中行时, 将选中的对象复制到本地剪贴板
-                public void valueChanged(ListSelectionEvent e) {
-                    doCopyTemplate();
+			templTable.addMouseListener(new MouseAdapter() {
+                // 鼠标左键复制, 将选中的对象复制到本地剪贴板
+                public void mouseClicked(MouseEvent e) {
+                    if (e.getButton() == MouseEvent.BUTTON1) { // 左键
+                        doCopyTemplate();
+                    }
                 }
 			});
 		}

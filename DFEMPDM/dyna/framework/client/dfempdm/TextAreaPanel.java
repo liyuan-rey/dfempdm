@@ -103,6 +103,15 @@ public class TextAreaPanel extends JPanel {
         public myCellEditor() {
             editor = new JTextArea();
             //editor.setEditable(false);
+//            editor.getDocument().addDocumentListener(new DocumentListener() {
+//                public void changedUpdate(DocumentEvent e) {
+//                    Document doc = e.getDocument();
+//                    setText(editor.getText()/*doc.getText(0, doc.getLength())*/);
+//                }
+//
+//                public void insertUpdate(DocumentEvent e) {}
+//                public void removeUpdate(DocumentEvent e) {}
+//            });
             editor.addKeyListener(new KeyAdapter() {
                 public void keyTyped(KeyEvent e) {
                     TextAreaPanel.this.setText(editor.getText());

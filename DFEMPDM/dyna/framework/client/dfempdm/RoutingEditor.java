@@ -380,7 +380,7 @@ public class RoutingEditor extends JFrame {
                         component.requestFocus();
                         
                         // 按 delete 键直接删除内容
-                        if (e.getKeyCode() == KeyEvent.VK_DELETE)
+                        //if (e.getKeyCode() == KeyEvent.VK_DELETE)
                             ((JTextComponent)component).setText("");
                     }
                 }
@@ -1135,6 +1135,12 @@ public class RoutingEditor extends JFrame {
 
         column = columnModel.getColumn(RoutingTableModel.WORKSHOP_COLUMN);
         column.setCellEditor(new DefaultCellEditor(cbxWorkshop) {
+
+            public Component getTableCellEditorComponent(JTable table,
+                    Object value, boolean isSelected, int row, int column) {
+                util.syncComboBoxWithValue(cbxWorkshop, value);
+                return super.getTableCellEditorComponent(table, value, isSelected, row, column);
+            }
             
         	public boolean stopCellEditing() {
         	    int selRow = routingTable.getSelectedRow();
@@ -1171,6 +1177,9 @@ public class RoutingEditor extends JFrame {
 
                 refreshCbxWorkCenter(workshopOuid);
                 
+                // select current value in combobox
+                util.syncComboBoxWithValue(cbxWorkCenter, value);
+                
                 return super.getTableCellEditorComponent(table, value,
                         isSelected, row, column);
             }
@@ -1182,7 +1191,14 @@ public class RoutingEditor extends JFrame {
         cbxOperationSpecialty = new JComboBox();
         
         column = columnModel.getColumn(RoutingTableModel.OPERATION_SPECIALTY_COLUMN);
-        column.setCellEditor(new DefaultCellEditor(cbxOperationSpecialty));
+        column.setCellEditor(new DefaultCellEditor(cbxOperationSpecialty) {
+
+            public Component getTableCellEditorComponent(JTable table,
+                    Object value, boolean isSelected, int row, int column) {
+                util.syncComboBoxWithValue(cbxOperationSpecialty, value);
+                return super.getTableCellEditorComponent(table, value, isSelected, row, column);
+            }
+        });
 
         column.setPreferredWidth(45);
 
@@ -1200,7 +1216,13 @@ public class RoutingEditor extends JFrame {
         column = columnModel
                 .getColumn(RoutingTableModel.SEQUENCE_TYPE_COLUMN);
         column.setCellEditor(new DefaultCellEditor(cbxSquenceType) {
-            
+
+            public Component getTableCellEditorComponent(JTable table,
+                    Object value, boolean isSelected, int row, int column) {
+                util.syncComboBoxWithValue(cbxSquenceType, value);
+                return super.getTableCellEditorComponent(table, value, isSelected, row, column);
+            }
+
         	public boolean stopCellEditing() {
                 Object squenceType = cbxSquenceType.getSelectedItem();
             	if (squenceType == null || squenceType.toString().equals("串行顺序 [0]")) {
@@ -1229,6 +1251,7 @@ public class RoutingEditor extends JFrame {
                     Object value, boolean isSelected, int row, int column) {
 
                 refreshCbxXSquence();
+                util.syncComboBoxWithValue(cbxXSquence, value);
 
                 return super.getTableCellEditorComponent(table, value,
                         isSelected, row, column);
@@ -1323,7 +1346,7 @@ public class RoutingEditor extends JFrame {
         routingTable.removeColumn(columnModel.getColumn(RoutingTableModel.RAW_OUID_COLUMN));
     }
 
-	/**
+    /**
      * Reload data of routing object
      */
     private void refresh() {
@@ -1821,7 +1844,7 @@ public class RoutingEditor extends JFrame {
                 case RoutingTableModel.PREPARATION_TIME_COLUMN:
                 case RoutingTableModel.OPERATING_TIME_COLUMN:
                     try {
-                        if (value != null)
+                        if (value != null && !tmpString.equals(""))
                             tableModel.getRawData(i).put(RoutingTableModel.getColumnDosName(j), new Float(tmpString));
                     } catch (NumberFormatException nfe) {
                         msg += "序 " + rowTitle + ", " + routingTable.getColumnName(j) + "必须填入有效单精度浮点数;\n";
@@ -1829,7 +1852,7 @@ public class RoutingEditor extends JFrame {
                     break;
                 case RoutingTableModel.PROCESS_NUM_COLUMN:
                     try {
-                        if (value != null)
+                        if (value != null && !tmpString.equals(""))
                         	tableModel.getRawData(i).put(RoutingTableModel.getColumnDosName(j), new Double(tmpString));
                     } catch (NumberFormatException nfe) {
                         msg += "序 " + rowTitle + ", " + routingTable.getColumnName(j) + "必须填入有效双精度浮点数;\n";
@@ -1838,7 +1861,7 @@ public class RoutingEditor extends JFrame {
                 case RoutingTableModel.WORKSHOP_SEQUENCE_COLUMN:
                 case RoutingTableModel.OPERATOR_NUM_COLUMN:
                     try {
-                        if (value != null)
+                        if (value != null && !tmpString.equals(""))
                         	tableModel.getRawData(i).put(RoutingTableModel.getColumnDosName(j), new Integer(tmpString));
                     } catch (NumberFormatException nfe) {
                         msg += "序 " + rowTitle + ", " + routingTable.getColumnName(j) + "必须填入有效整数;\n";
@@ -1864,7 +1887,7 @@ public class RoutingEditor extends JFrame {
 	 * This method initializes textAreaPanel	
 	 * 	
 	 * @return dyna.framework.client.dfempdm.TextAreaPanel	
-	 */    
+	 */
 	private TextAreaPanel getTextAreaPanel() {
 		if (textAreaPanel == null) {
 			textAreaPanel = new TextAreaPanel();

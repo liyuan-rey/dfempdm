@@ -46,7 +46,7 @@ public class RoutingTableModel extends AbstractTableModel {
 	        {"顺序类型", "name@Sequence Type"},
 	        {"进入工序", "Enter Operation Squence"},
 	        {"结束工序", "End Operation Squence"},
-	        {"描述", "md$description"},
+	        {"描述", "Description"},
 	        {"准备时间(小时)", "Preparation Time"},
 	        {"操作时间(小时)", "Operating Time"},
 	        {"数量", "Part Quantity"},

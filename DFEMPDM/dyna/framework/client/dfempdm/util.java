@@ -97,4 +97,17 @@ public class util {
         return dialog;
     }
 
+    public static void syncComboBoxWithValue(JComboBox combo, Object value) {
+        if (combo == null || value == null)
+            return;
+        
+        int count = combo.getItemCount();
+        for (int i = 0; i < count; i++) {
+            if (combo.getItemAt(i).toString().equals(value.toString())) {
+                combo.setSelectedIndex(i);
+                break;
+            }
+        }
+    }
+
 }

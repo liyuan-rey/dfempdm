@@ -10,8 +10,11 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 
 import javax.swing.JButton;
@@ -34,7 +37,7 @@ public class MaterialCalculator extends JDialog {
     public int choice = JOptionPane.CANCEL_OPTION;
     private static DOS dos = dyna.framework.client.DynaMOAD.dos;
     private DOSChangeable contextObj = null;
-    private static final String remarkTempl = "其中, 夹头 %j 压头 %y    每 %m 件一个夹头或压头.";
+    private static final String remarkTempl = "其中, 夹头 %j 压头 %y 每 %m 件一个夹头或压头";
     
 	private JPanel jPanel = null;
 	private JLabel jLabel = null;
@@ -768,9 +771,15 @@ public class MaterialCalculator extends JDialog {
         objAdapter = (DOSObjectAdapter)cbxRoughUom.getSelectedItem();
         contextObj.put("rough_uom", objAdapter == null ? null : objAdapter.get("ouid")); // 毛坯单位
         
-        tmpString = remarkTempl.replaceAll("%j", txtColletNum.getText());
-        tmpString = tmpString.replaceAll("%y", txtBallastNum.getText());
-        tmpString = tmpString.replaceAll("%m", txtEveryRange.getText());
+        if (txtColletNum.getText().trim().equals("") && txtBallastNum.getText().trim().equals("") 
+                && txtEveryRange.getText().trim().equals("")) {
+            tmpString = null;
+        } else {
+            tmpString = remarkTempl.replaceAll("%j", txtColletNum.getText());
+            tmpString = tmpString.replaceAll("%y", txtBallastNum.getText());
+            tmpString = tmpString.replaceAll("%m", txtEveryRange.getText());
+        }
+        
         contextObj.put("Material Ration Remarks", tmpString); // 定额备注
         
         // 工艺定额利用率 material usage ratio
@@ -797,9 +806,42 @@ public class MaterialCalculator extends JDialog {
             contextObj.put("material usage ratio", null);
         }
         
+        // 将材料定额人员和修改日期写到数据库
+		//get current user's ouid
+    	String fuserOuid = "800017a7"; 
+    	String userOuid = null;
+    	ArrayList searchResults = null ;
+    	HashMap searchCondition = new HashMap () ;
+    	searchCondition.put ("8000197c", dyna.framework.client.LogIn.userID) ; 
+    	try
+    	{
+    	    searchResults = dos.list (fuserOuid, searchCondition) ;
+    	    ArrayList tempList = (ArrayList) searchResults.get (0);
+    	   	userOuid = (String) tempList.get(0);	
+    	    tempList = null;
+    	}
+    	catch (dyna.framework.iip.IIPRequestException e)
+    	{
+    		e.printStackTrace();
+    		JOptionPane.showMessageDialog(this, "获取当前用户失败, 保存失败.", "提示", JOptionPane.WARNING_MESSAGE);
+    		return;
+
+    	}
+    	
+    	contextObj.put ("WorkShop Routing Personnel", userOuid);
+    	
+    	GregorianCalendar thisday = new GregorianCalendar(); 
+      	Date d = thisday.getTime();
+      	DateFormat df = DateFormat.getDateInstance();
+      	String s = df.format(d);
+      	contextObj.put ("Workshop Routing Modify Date", s );
+        
+      	// save
         try {
-            dos.set(contextObj);
-            JOptionPane.showMessageDialog(this, "保存成功.", "提示", JOptionPane.INFORMATION_MESSAGE);
+            if (contextObj.isChanged()) {
+                dos.set(contextObj);
+                JOptionPane.showMessageDialog(this, "保存成功.", "提示", JOptionPane.INFORMATION_MESSAGE);
+            }
             
             this.choice = JOptionPane.OK_OPTION;
             this.dispose();

@@ -457,20 +457,6 @@ public class RoutingEditor extends JFrame {
                             // 控制工序模板面板状态
                             jTabbedPane.setSelectedComponent(templPanel);
                         }
-//                        
-//                        //XXX 将非 TextField 的单元格置为可编辑状态
-//                        TableCellEditor editor = routingTable.getCellEditor(
-//                                row, col);
-//                        if (editor instanceof DefaultCellEditor
-//                                && ((DefaultCellEditor) editor).getComponent() instanceof JTextField)
-//                            return;
-//
-//                        routingTable.editCellAt(row, col);
-//                        Component component = editor
-//                                .getTableCellEditorComponent(routingTable,
-//                                        routingTable.getValueAt(row, col),
-//                                        true, row, col);
-//                        component.requestFocus();
                     }
                 }
             };

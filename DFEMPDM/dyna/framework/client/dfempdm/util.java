@@ -54,7 +54,7 @@ public class util {
                 
                 combo.addItem(new DOSObjectAdapter(codeItem, "%name% [%codeitemid%]"));
                 if (selItemId != null && !selItemId.equals("")) {
-                    if (selItemId.equals(codeItem.getOuid()))
+                    if (selItemId.equals(codeItem.get("ouid")))
                         combo.setSelectedIndex(combo.getItemCount()-1);
                 }
             }

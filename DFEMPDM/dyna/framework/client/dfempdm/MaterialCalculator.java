@@ -10,6 +10,9 @@ import java.awt.GridBagLayout;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -81,7 +84,7 @@ public class MaterialCalculator extends JFrame {
         this.setContentPane(getJScrollPane());
         this.setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/icons/SmallSearchButton.gif")));
         this.setTitle("材料定额计算");
-        this.setSize(331, 324);
+        this.setSize(390, 330);
 			
 	}
 	/**
@@ -290,6 +293,12 @@ public class MaterialCalculator extends JFrame {
 			chkShowAllFormulae = new JCheckBox();
 			chkShowAllFormulae.setText("列出所有公式");
 			chkShowAllFormulae.setBackground(new java.awt.Color(223,216,206));
+			chkShowAllFormulae.addActionListener(new ActionListener() {
+
+                public void actionPerformed(ActionEvent e) {
+                    refreshCbxFormulae();
+                }
+			});
 		}
 		return chkShowAllFormulae;
 	}
@@ -403,8 +412,11 @@ public class MaterialCalculator extends JFrame {
 			cbxFormulae.addActionListener(new ActionListener() {
 
                 public void actionPerformed(ActionEvent e) {
-    			    Formulae f = new Formulae();
-    			    f.show();
+                    Object obj = cbxFormulae.getSelectedItem();
+                    if (!(obj instanceof DOSObjectAdapter))
+                        return;
+
+    			    calcRation(((DOSObjectAdapter)obj).getDosObject());
                 }
 			});
 		}
@@ -436,6 +448,11 @@ public class MaterialCalculator extends JFrame {
 		if (btnOk == null) {
 			btnOk = new JButton();
 			btnOk.setText("确定");
+			btnOk.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    save();
+                }
+			});
 		}
 		return btnOk;
 	}
@@ -448,6 +465,11 @@ public class MaterialCalculator extends JFrame {
 		if (btnCancel == null) {
 			btnCancel = new JButton();
 			btnCancel.setText("取消");
+			btnCancel.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    MaterialCalculator.this.dispose();
+                }
+			});
 		}
 		return btnCancel;
 	}
@@ -515,17 +537,17 @@ public class MaterialCalculator extends JFrame {
                 try {
                     String tmpString = tmpObject.toString();
                     // 夹头
-                    int start = 7;
+                    int start = tmpString.indexOf("夹头") + 3;
                     int end = tmpString.indexOf(" ", start);
                     String tmpNum = tmpString.substring(start, end);
                     txtColletNum.setText(tmpNum);
                     // 压头
-                    start = end + 4;
+                    start = tmpString.indexOf("压头") + 3;
                     end = tmpString.indexOf(" ", start);
                     tmpNum = tmpString.substring(start, end);
                     txtBallastNum.setText(tmpNum);
                     // 每
-                    start = end + 2;
+                    start = tmpString.indexOf("每") + 2;
                     end = tmpString.indexOf(" ", start);
                     tmpNum = tmpString.substring(start, end);
                     txtEveryRange.setText(tmpNum);
@@ -543,10 +565,195 @@ public class MaterialCalculator extends JFrame {
             util.refreshCodeComboBox("单位", cbxMaterialUom, (String)tmpObject);
             
             // 公式列表
+            refreshCbxFormulae();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "读取数据失败.", "提示", JOptionPane.WARNING_MESSAGE);
         }
+    }
+    
+    private void refreshCbxFormulae() {
+        cbxFormulae.removeAllItems();
+        cbxFormulae.addItem("<无>"); // At least we have one line
+        cbxFormulae.setSelectedIndex(0);
         
+        final String ouidOfFormulaClass = "8605def4";
+        final String ouidOfAssociation = "8605df21";
+        
+        try {
+            ArrayList listResult = null;
+            Object tmpObject = null;
+
+            if (chkShowAllFormulae.isSelected()) {
+                // Get all formulae
+                listResult = dos.list(ouidOfFormulaClass);
+            } else {
+                // Get formulae which linked to the material of normalpart
+                tmpObject = contextObj.get("rawmaterial");
+                if (tmpObject == null)
+                    return;
+
+                HashMap filter = new HashMap();
+                filter.put("list.mode", "association");
+                filter.put("ouid@association.class", ouidOfAssociation);
+
+                listResult = dos.listLinkFrom(tmpObject.toString(), filter);
+            }
+
+            if (listResult == null)
+                return;
+
+            ArrayList tmpList = null;
+            int size = listResult.size();
+            for (int i = 0; i < size; i++) {
+                tmpList = (ArrayList) listResult.get(i);
+                if (tmpList == null)
+                    continue;
+
+                String ouidFormula = (String) tmpList.get(0);
+                DOSChangeable dosFormula = dos.get(ouidFormula);
+                if (dosFormula != null)
+                    cbxFormulae.addItem(new DOSObjectAdapter(dosFormula,
+                            "%md$description% : %Formula%"));
+
+                tmpList = null;
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "获取定额计算公式时出错.", "提示", JOptionPane.WARNING_MESSAGE);
+        }
+    }
+    
+    private void calcRation(DOSChangeable dosFormula) {
+        // 准备公式, 显示公式计算界面
+        Formulae f = new Formulae(this, true);
+
+        String formula = (String)dosFormula.get("Formula");
+        if (f.setFormula(formula) == false) {
+            JOptionPane.showMessageDialog(MaterialCalculator.this, "公式有错误, 请检查并修正.");
+            return;
+        }
+
+        f.setDescription((String)dosFormula.get("md$description"));
+        
+        // 设一些缺省值, 公式的缺省系数, 材料的密度, 单位重量等
+        Object obj = dosFormula.get("Coefficient");
+        if (obj != null)
+            f.setValue("系数", obj.toString());
+        
+        String ouidMaterial = (String)contextObj.get("rawmaterial");
+        if (ouidMaterial != null) {
+            DOSChangeable dosMaterial;
+            try {
+                dosMaterial = dos.get(ouidMaterial);
+	            if (dosMaterial != null) {
+	                f.setValue("密度", (String)dosMaterial.get("Density"));
+	                f.setValue("单位长度重量", (String)dosMaterial.get("Theoretic Weight"));
+	            }
+            } catch (Exception e) {
+                // do nothing
+            }
+        }
+        
+        f.pack();
+        util.CenterWindow(null, f);
+        f.show();
+        
+        if (f.userChoice != JOptionPane.OK_OPTION)
+            return;
+        
+        // 将计算结果写入界面, 数字保留三位小数
+        NumberFormat formator = NumberFormat.getInstance();
+        formator.setMaximumFractionDigits(3);
+        // 定额
+        double value = f.getResult();
+        txtRation.setText(formator.format(value));
+        // 毛坯数量
+        String tmpString = f.getValue("数量");
+        txtRoughQty.setText(tmpString);
+        // 毛坯下料尺寸
+        tmpString = (String)dosFormula.get("r_material_dim");
+        if (tmpString != null) {
+            String [] pieces = tmpString.split(Formulae.opRegex);
+            
+            for (int i = 0; i < pieces.length; i++) {
+                String tmpValue = f.getValue(pieces[i]);
+                if (tmpValue == null)
+                    continue;
+                
+                tmpString = tmpString.replaceAll(pieces[i], tmpValue);
+            }
+            
+            txtMaterialDim.setText(tmpString);
+        }
     }
 
+    private void save() {
+        // check data
+        String msg = "";
+        Float fRoughQty = null;
+        Double dMakePartNum = null;
+        Double dRation = null;
+        
+        String tmpString = "";
+        
+        try {
+            msg = "毛坯数量";
+            tmpString = txtRoughQty.getText();
+            if (!tmpString.trim().equals(""))
+                fRoughQty = new Float(tmpString);
+            
+            msg = "加工零件数量";
+            tmpString = txtMakePartNum.getText();
+            if (!tmpString.trim().equals(""))
+                dMakePartNum = new Double(tmpString);
+            
+            msg = "定额";
+            tmpString = txtRation.getText();
+            if (!tmpString.trim().equals(""))
+                dRation = new Double(tmpString);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "" + msg + "值填写错误, 请检查修改后重新提交.", "提示", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        
+        tmpString = txtMaterialDim.getText();
+        contextObj.put("r_material_dim", tmpString); // 毛坯下料尺寸
+        
+        contextObj.put("rough qty", fRoughQty); // 毛坯数量
+        contextObj.put("makepartnum", dMakePartNum); // 加工零件数量
+        contextObj.put("materialration", dRation); // 定额
+        
+        DOSObjectAdapter objAdapter = (DOSObjectAdapter)cbxMaterialUom.getSelectedItem();
+        contextObj.put("m_uom", objAdapter.get("ouid")); // 材料单位
+        
+        objAdapter = (DOSObjectAdapter)cbxRoughUom.getSelectedItem();
+        contextObj.put("rough_uom", objAdapter.get("ouid")); // 毛坯单位
+        
+        tmpString = remarkTempl.replaceAll("%j", txtColletNum.getText());
+        tmpString = tmpString.replaceAll("%y", txtBallastNum.getText());
+        tmpString = tmpString.replaceAll("%m", txtEveryRange.getText());
+        contextObj.put("Material Ration Remarks", tmpString); // 定额备注
+        
+        // 工艺定额利用率 material usage ratio
+        try {
+            tmpString = (String)contextObj.get("weight");
+            Double dWeight = new Double(tmpString);
+            Double dRatio = new Double(dWeight.doubleValue() 
+                    / dRation.doubleValue() / dMakePartNum.doubleValue() 
+                    / dRation.doubleValue());
+            
+            contextObj.put("material usage ratio", dRatio);
+        } catch (Exception e) {
+            System.err.println("计算工艺定额利用率时出错. \n" + e);
+        }
+        
+        try {
+            dos.set(contextObj);
+            JOptionPane.showMessageDialog(this, "保存成功.", "提示", JOptionPane.INFORMATION_MESSAGE);
+            
+            this.dispose();
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "保存失败.", "提示", JOptionPane.WARNING_MESSAGE);
+        }
+    }
 }  //  @jve:decl-index=0:visual-constraint="10,10"

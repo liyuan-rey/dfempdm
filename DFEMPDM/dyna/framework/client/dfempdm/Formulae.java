@@ -1,32 +1,38 @@
 /*
  * Created on 2004-11-9
  *
- * TODO To change the template for this generated file go to
- * Window - Preferences - Java - Code Style - Code Templates
  */
 package dyna.framework.client.dfempdm;
 
-import javax.swing.JFrame;
-
-import javax.swing.JPanel;
 import java.awt.BorderLayout;
-import javax.swing.JLabel;
-import javax.swing.JButton;
 import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.HashMap;
+import java.util.Iterator;
+
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
-import java.awt.GridLayout;
-import java.awt.GridBagLayout;
-import java.awt.GridBagConstraints;
+
+import bsh.Interpreter;
+
 /**
  * @author 李渊
  *
- * TODO To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Style - Code Templates
  */
 public class Formulae extends JDialog {
+    public static final String opRegex = "[\\+\\-\\*/\\(\\)]";
+    private HashMap varMap = new HashMap();
+    private Double calcResult = null;
+    public int userChoice = JOptionPane.CANCEL_OPTION;
 
 	private JPanel jPanel = null;
 	private JPanel jPanel1 = null;
@@ -37,15 +43,12 @@ public class Formulae extends JDialog {
 	private JLabel lblFormula = null;
 	private JLabel lblFormulaDesc = null;
 	private JScrollPane jScrollPane = null;
-	private JPanel paneDataItem = null;  //  @jve:decl-index=0:visual-constraint="428,148"
-	private JLabel lblName = null;
-	private JTextField txtValue = null;
 	/**
 	 * This method initializes 
 	 * 
 	 */
-	public Formulae() {
-		super();
+	public Formulae(java.awt.Frame owner, boolean modal) {
+		super(owner, modal);
 		initialize();
 	}
 	/**
@@ -69,6 +72,7 @@ public class Formulae extends JDialog {
 			jPanel = new JPanel();
 			jPanel.setLayout(new BorderLayout());
 			jPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(5,5,5,5));
+			jPanel.setBackground(new java.awt.Color(223,216,206));
 			jPanel.add(getJPanel1(), java.awt.BorderLayout.NORTH);
 			jPanel.add(getPaneData(), java.awt.BorderLayout.CENTER);
 			jPanel.add(getJPanel3(), java.awt.BorderLayout.SOUTH);
@@ -103,14 +107,9 @@ public class Formulae extends JDialog {
 	 */    
 	private JPanel getPaneData() {
 		if (paneData == null) {
-			GridLayout gridLayout31 = new GridLayout();
 			paneData = new JPanel();
-			paneData.setLayout(gridLayout31);
+			paneData.setLayout(new GridBagLayout());
 			paneData.setBackground(new java.awt.Color(223,216,206));
-			gridLayout31.setRows(3);
-			gridLayout31.setVgap(5);
-			gridLayout31.setColumns(1);
-			paneData.add(getPaneDataItem(), null);
 		}
 		return paneData;
 	}
@@ -140,6 +139,47 @@ public class Formulae extends JDialog {
 		if (btnOk == null) {
 			btnOk = new JButton();
 			btnOk.setText("计算");
+			btnOk.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    String evalString = lblFormula.getText();
+                    String msg = "";
+                    
+                    Iterator i = varMap.keySet().iterator();
+                    for (; i.hasNext();) {
+                        String varName = (String)i.next();
+                        try {
+                            JTextField tmpField = (JTextField)varMap.get(varName);
+                            Double value = new Double(tmpField.getText());
+                            evalString = evalString.replaceAll(varName, value.toString());
+                        } catch (Exception e1) {
+                            msg += varName + ", ";
+                        }
+                    }
+                    
+                    if (msg.length() > 0) {
+                        JOptionPane.showMessageDialog(Formulae.this,
+                                "下列数值填写有误: \n  " + msg
+                                        + "\n请检查是否填写了有效的双精度浮点型值.",
+                                "提示", JOptionPane.INFORMATION_MESSAGE);
+                        return;
+                    }
+                    
+                    Interpreter interp = new Interpreter(); 
+            		try
+            		{
+            			Object result = interp.eval(evalString);
+            			calcResult = Double.valueOf(result.toString());
+            		}
+            		catch(Exception e1)
+            		{
+            			JOptionPane.showMessageDialog(Formulae.this, "计算出现错误, 请检查公式是否正确.");
+            			return;
+            		}
+
+                    userChoice = JOptionPane.OK_OPTION;
+                    Formulae.this.dispose();
+                }
+			});
 		}
 		return btnOk;
 	}
@@ -152,6 +192,11 @@ public class Formulae extends JDialog {
 		if (btnCancel == null) {
 			btnCancel = new JButton();
 			btnCancel.setText("取消");
+			btnCancel.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    Formulae.this.dispose();
+                }
+			});
 		}
 		return btnCancel;
 	}
@@ -167,33 +212,82 @@ public class Formulae extends JDialog {
 		}
 		return jScrollPane;
 	}
-	/**
-	 * This method initializes jPanel2	
-	 * 	
-	 * @return javax.swing.JPanel	
-	 */    
-	private JPanel getPaneDataItem() {
-		if (paneDataItem == null) {
-			paneDataItem = new JPanel();
-			lblName = new JLabel();
-			paneDataItem.setLayout(new BorderLayout());
-			lblName.setText("<name>");
-			lblName.setBorder(javax.swing.BorderFactory.createEmptyBorder(0,0,5,5));
-			paneDataItem.add(lblName, java.awt.BorderLayout.WEST);
-			paneDataItem.add(getTxtValue(), java.awt.BorderLayout.CENTER);
-		}
-		return paneDataItem;
+	
+	public boolean setFormula(String fml) {
+	    if (fml == null)
+	        return false;
+	    
+	    String [] pieces = fml.split(opRegex);
+	    if (pieces.length < 1)
+	        return false;
+	    
+	    lblFormula.setText(fml);
+	    varMap.clear();
+	    
+	    for (int i = 0; i < pieces.length; i++) {
+	        try {
+	            new Double(pieces[i]);
+	            continue;
+	        } catch (Exception e) {
+	            // do nothing
+	        }
+	        AddVariable(pieces[i]);
+	    }
+	    
+	    return true;
 	}
-	/**
-	 * This method initializes jTextField	
-	 * 	
-	 * @return javax.swing.JTextField	
-	 */    
-	private JTextField getTxtValue() {
-		if (txtValue == null) {
-			txtValue = new JTextField();
-			txtValue.setText("<value>");
-		}
-		return txtValue;
+
+	private void AddVariable(String varName) {
+	    if (varMap.containsKey(varName))
+	        return; // 过滤重复的
+	    
+	    int row = varMap.size() + 1;
+	    
+	    // Build UI
+		GridBagConstraints gbcText = new GridBagConstraints();
+		gbcText.gridx = 0;
+		gbcText.gridy = row;
+		gbcText.anchor = java.awt.GridBagConstraints.EAST;
+		gbcText.insets = new java.awt.Insets(0,0,5,0);
+
+		GridBagConstraints gbcValue = new GridBagConstraints();
+		gbcValue.gridx = 1;
+		gbcValue.gridy = row;
+		gbcValue.weightx = 1.0;
+		gbcValue.fill = java.awt.GridBagConstraints.HORIZONTAL;
+		gbcValue.insets = new java.awt.Insets(0,5,5,0);
+
+		paneData.add(new JLabel(varName), gbcText);
+		JTextField tmpField = new JTextField();
+		paneData.add(tmpField, gbcValue);
+		
+		// Add to varMap
+		varMap.put(varName, tmpField);
 	}
-   }  //  @jve:decl-index=0:visual-constraint="10,10"
+	
+	public void setDescription(String desc) {
+	    if (desc != null)
+	        lblFormulaDesc.setText(desc + ":");
+	}
+	
+	public String getValue(String varName) {
+	    JTextField tmpField = (JTextField)varMap.get(varName);
+	    if (tmpField == null)
+	        return null;
+	    
+	    return tmpField.getText();
+	}
+	
+	public boolean setValue(String varName, String newValue) {
+	    JTextField tmpField = (JTextField)varMap.get(varName);
+	    if (tmpField == null)
+	        return false;
+	    
+	    tmpField.setText(newValue);
+	    return true;
+	}
+	
+	public double getResult() {
+	    return calcResult.doubleValue();
+	}
+}  //  @jve:decl-index=0:visual-constraint="10,10"

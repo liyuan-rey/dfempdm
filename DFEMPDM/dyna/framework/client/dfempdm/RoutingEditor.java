@@ -137,8 +137,6 @@ public class RoutingEditor extends JFrame {
 
         initialize();
         setupColumnEditor();
-
-        util.CenterWindow(this.getParent(), this);
     }
 
     /**
@@ -734,6 +732,8 @@ public class RoutingEditor extends JFrame {
             codeTree.setCode((DOSChangeable)dos.getCodeWithName("工艺模板分类"));
 	    
             CodeSelectDialog dlg = new CodeSelectDialog(this, "选择", true, codeTree);
+
+            util.CenterWindow(null, this);
             dlg.show();
 
             if (dlg.getChoice() != JOptionPane.OK_OPTION)
@@ -1731,7 +1731,7 @@ public class RoutingEditor extends JFrame {
             JOptionPane.showMessageDialog(this, "保存成功.", "提示", JOptionPane.INFORMATION_MESSAGE);
         } catch (Exception e) {
             logger.warning("exception: " + e);
-            JOptionPane.showMessageDialog(this, "保存失败, 请检查行 " + row + " 输入数据是否有误.", "提示", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "保存失败, 请检查行 " + (row+1) + " 输入数据是否有误.", "提示", JOptionPane.WARNING_MESSAGE);
         }
 
         logger.fine("--- end save ---");
@@ -1800,14 +1800,21 @@ public class RoutingEditor extends JFrame {
                         if (value != null)
                             tableModel.getRawData(i).put(RoutingTableModel.getColumnDosName(j), new Float(tmpString));
                     } catch (NumberFormatException nfe) {
-                        msg += "第 " + (i+1) + " 行, " + routingTable.getColumnName(j) + "必须填入有效浮点数;\n";
+                        msg += "第 " + (i+1) + " 行, " + routingTable.getColumnName(j) + "必须填入有效单精度浮点数;\n";
+                    }
+                    break;
+                case RoutingTableModel.PROCESS_NUM_COLUMN:
+                    try {
+                        if (value != null)
+                        	tableModel.getRawData(i).put(RoutingTableModel.getColumnDosName(j), new Double(tmpString));
+                    } catch (NumberFormatException nfe) {
+                        msg += "第 " + (i+1) + " 行, " + routingTable.getColumnName(j) + "必须填入有效双精度浮点数;\n";
                     }
                     break;
                 case RoutingTableModel.WORKSHOP_SEQUENCE_COLUMN:
-                case RoutingTableModel.PROCESS_NUM_COLUMN:
                 case RoutingTableModel.OPERATOR_NUM_COLUMN:
                     try {
-                        if (value != null/* && !tmpString.equals("")*/)
+                        if (value != null)
                         	tableModel.getRawData(i).put(RoutingTableModel.getColumnDosName(j), new Integer(tmpString));
                     } catch (NumberFormatException nfe) {
                         msg += "第 " + (i+1) + " 行, " + routingTable.getColumnName(j) + "必须填入有效整数;\n";
@@ -1845,7 +1852,7 @@ public class RoutingEditor extends JFrame {
         dialog.setContentPane(panel);
         
         dialog.setSize(250, 380);
-        util.CenterWindow(parent, dialog);
+        util.CenterWindow(null, dialog);
         
         return dialog;
     }

@@ -32,6 +32,7 @@ public class HowTo {
 			}
 			
 			editor.setContextObject(dosObj, 3, OpTypes);
+			
 			editor.setExtendedState(java.awt.Frame.MAXIMIZED_BOTH);
 			editor.show();
 		} catch (Exception e) {
@@ -50,6 +51,9 @@ public class HowTo {
 			MaterialCalculator calculator = new MaterialCalculator();
 			
 			calculator.setContextObject(dosObj);
+			
+			calculator.pack();
+			util.CenterWindow(null, calculator);
 			calculator.show();
         } catch (Exception e) {
 			e.printStackTrace();

@@ -5,17 +5,23 @@
 package dyna.framework.client.dfempdm;
 
 import java.awt.BorderLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Vector;
 
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.table.DefaultTableModel;
@@ -23,38 +29,46 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 
+import dyna.framework.client.CheckOut;
 import dyna.framework.service.DOS;
 import dyna.framework.service.dos.DOSChangeable;
+import javax.swing.JTextArea;
+import javax.swing.JList;
 /**
  * @author 李渊
  *
  */
 public class CalculatorPanel extends JPanel {
     private DOS dos = dyna.framework.client.DynaMOAD.dos;
+    private JFrame parentFrame = null;
     
 	public static final int SEQUENCE_NO_COLUMN = 0; // 编号
 	public static final int DESCRIPTION_COLUMN = 1; // 描述
-	public static final int FILES_COLUMN = 2; // 文件列表
 	// 以下是隐藏列
+	public static final int REMARK_COLUMN = 2; // 工时定额方案备注
 	public static final int MHS_CATEGORY_COLUMN = 3; // 工时定额方案分类
 	public static final int RAW_OUID_COLUMN = 4; // 工时定额方案对象的 ouid
 
 	private static final String[][] columnInfo = { //说明: {"表格列名", "对应的 Routing Template DOSChangable 对象的 HashMap key"}
 	        {"编号", "md$number"},
 	        {"描述", "md$description"},
-	        {"文件", ""},
 	        // 以下是隐藏列
+	        {"remarks", "remarks"},
 	        {"Category", "Category"},
 	        {"ouid", "ouid"} };
 
-	private JSplitPane jSplitPane = null;
+	private JSplitPane jSplitPaneRoot = null;
+	private JSplitPane jSplitPaneLeft = null;
+	private JSplitPane jSplitPaneRight = null;
 	private JScrollPane treeScrollPane = null;
 	private JScrollPane tableScrollPane = null;
+	private JScrollPane textScrollPane = null;
+	private JScrollPane listScrollPane = null;
 	private CodeTree codeTree = null;
 	private JTable templTable = null;
+	private JList lstFiles = null;
+	private JTextArea txtRemark = null;
 	private DefaultTableModel tableModel = null;   //  @jve:decl-index=0:
-    private FileListCellEditor flceFiles = null;
-    private JFrame parentFrame = null;
 	/**
 	 * This method initializes 
 	 * 
@@ -73,23 +87,53 @@ public class CalculatorPanel extends JPanel {
 	private void initialize() {
         this.setLayout(new BorderLayout());
         this.setPreferredSize(new java.awt.Dimension(120,80));
-        this.setSize(384, 213);
-        this.add(getJSplitPane(), java.awt.BorderLayout.CENTER);
+        this.setSize(711, 213);
+        this.add(getJSplitPaneRoot(), java.awt.BorderLayout.CENTER);
+	}
+	/**
+	 * This method initializes jSplitPane1	
+	 * 	
+	 * @return javax.swing.JSplitPane	
+	 */    
+	private JSplitPane getJSplitPaneRoot() {
+		if (jSplitPaneRoot == null) {
+			jSplitPaneRoot = new JSplitPane();
+			jSplitPaneRoot.setLeftComponent(getJSplitPaneLeft());
+			jSplitPaneRoot.setRightComponent(getJSplitPaneRight());
+			jSplitPaneRoot.setDividerLocation(380);
+			jSplitPaneRoot.setDividerSize(3);
+		}
+		return jSplitPaneRoot;
 	}
 	/**
 	 * This method initializes jSplitPane	
 	 * 	
 	 * @return javax.swing.JSplitPane	
 	 */    
-	private JSplitPane getJSplitPane() {
-		if (jSplitPane == null) {
-			jSplitPane = new JSplitPane();
-			jSplitPane.setLeftComponent(getTreeScrollPane());
-			jSplitPane.setRightComponent(getTableScrollPane());
-			jSplitPane.setDividerLocation(180);
-			jSplitPane.setDividerSize(3);
+	private JSplitPane getJSplitPaneLeft() {
+		if (jSplitPaneLeft == null) {
+			jSplitPaneLeft = new JSplitPane();
+			jSplitPaneLeft.setLeftComponent(getTreeScrollPane());
+			jSplitPaneLeft.setRightComponent(getTableScrollPane());
+			jSplitPaneLeft.setDividerLocation(180);
+			jSplitPaneLeft.setDividerSize(3);
 		}
-		return jSplitPane;
+		return jSplitPaneLeft;
+	}
+	/**
+	 * This method initializes jSplitPane2	
+	 * 	
+	 * @return javax.swing.JSplitPane	
+	 */    
+	private JSplitPane getJSplitPaneRight() {
+		if (jSplitPaneRight == null) {
+			jSplitPaneRight = new JSplitPane();
+			jSplitPaneRight.setDividerLocation(240);
+			jSplitPaneRight.setDividerSize(3);
+			jSplitPaneRight.setLeftComponent(getTextScrollPane());
+			jSplitPaneRight.setRightComponent(getListScrollPane());
+		}
+		return jSplitPaneRight;
 	}
 	/**
 	 * This method initializes jScrollPane	
@@ -114,6 +158,30 @@ public class CalculatorPanel extends JPanel {
 			tableScrollPane.setViewportView(getTemplTable());
 		}
 		return tableScrollPane;
+	}
+	/**
+	 * This method initializes jScrollPane	
+	 * 	
+	 * @return javax.swing.JScrollPane	
+	 */    
+	private JScrollPane getTextScrollPane() {
+		if (textScrollPane == null) {
+			textScrollPane = new JScrollPane();
+			textScrollPane.setViewportView(getTxtRemark());
+		}
+		return textScrollPane;
+	}
+	/**
+	 * This method initializes jScrollPane1	
+	 * 	
+	 * @return javax.swing.JScrollPane	
+	 */    
+	private JScrollPane getListScrollPane() {
+		if (listScrollPane == null) {
+			listScrollPane = new JScrollPane();
+			listScrollPane.setViewportView(getLstFiles());
+		}
+		return listScrollPane;
 	}
 	/**
 	 * This method initializes codeTree	
@@ -163,7 +231,6 @@ public class CalculatorPanel extends JPanel {
 			templTable.getTableHeader().setReorderingAllowed(false);
 			templTable.setRowHeight(22);
 			
-			templTable.setColumnSelectionAllowed(true);
 			templTable.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
 			
 			setupColumnEditor();
@@ -173,8 +240,102 @@ public class CalculatorPanel extends JPanel {
 			
 			templTable.removeColumn(columnModel.getColumn(RAW_OUID_COLUMN));
 			templTable.removeColumn(columnModel.getColumn(MHS_CATEGORY_COLUMN));
+			templTable.removeColumn(columnModel.getColumn(REMARK_COLUMN));
+			
+			// Row selection listener
+			templTable.getSelectionModel().addListSelectionListener(
+			        new ListSelectionListener() {
+		                public void valueChanged(ListSelectionEvent e) {
+		                    if (e.getValueIsAdjusting()) {
+		                        return;
+		                    }
+
+		                    int row = templTable.getSelectedRow();
+
+		                    if (row >= 0 && row < templTable.getRowCount()) {
+		                        String strRemark = (String)tableModel.getValueAt(row, REMARK_COLUMN);
+		                        txtRemark.setText(strRemark);
+		                        
+		                        String ouidMHS = (String)tableModel.getValueAt(row, RAW_OUID_COLUMN);
+		                        refreshLstFiles(ouidMHS);
+		                    } else {
+		                        txtRemark.setText("");
+		                        
+		                        lstFiles.clearSelection();
+		                        lstFiles.setListData(new Object[0]);
+		                    }
+		                }
+			        });
 		}
+		
 		return templTable;
+	}
+	/**
+	 * This method initializes jTextArea	
+	 * 	
+	 * @return javax.swing.JTextArea	
+	 */    
+	private JTextArea getTxtRemark() {
+		if (txtRemark == null) {
+			txtRemark = new JTextArea();
+			txtRemark.setEditable(false);
+		}
+		return txtRemark;
+	}
+	/**
+	 * This method initializes jList	
+	 * 	
+	 * @return javax.swing.JList	
+	 */    
+	private JList getLstFiles() {
+		if (lstFiles == null) {
+			lstFiles = new JList();
+			lstFiles.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+			
+			lstFiles.addMouseListener(new MouseAdapter() {
+			     public void mouseClicked(MouseEvent e) {
+			         if (e.getClickCount() == 2) {
+		                try {
+                            Object value = lstFiles.getSelectedValue();
+                            if (!(value instanceof DOSObjectAdapter))
+                                return;
+
+                            DOSObjectAdapter dosFile = (DOSObjectAdapter) value;
+
+                            HashMap tmpMap = dosFile.getDosObject().getValueMap();
+                            CheckOut checkedOut = new CheckOut(parentFrame, true, tmpMap);
+                            File downLoadFile = new File((String) tmpMap.get("md$description"));
+
+                            String fileSeperator = System
+                                    .getProperty("file.separator") != null ? System
+                                    .getProperty("file.separator")
+                                    : "\\";
+
+                            String workingDirectory = System
+                                    .getProperty("user.dir")
+                                    + fileSeperator
+                                    + "tmp"
+                                    + fileSeperator
+                                    + downLoadFile.getName();
+
+                            checkedOut.setSession(null);
+                            checkedOut.setPreselectedFilePath(workingDirectory);
+                            checkedOut.checkOutCheckBox.setSelected(false);
+                            checkedOut.downloadCheckBox.setSelected(true);
+                            checkedOut.invokeCheckBox.setSelected(true);
+                            checkedOut.setReadOnlyModel(true);
+                            checkedOut.processButton.doClick();
+                            checkedOut.setVisible(false);
+                            checkedOut = null;
+                        } catch (Exception ex) {
+                            JOptionPane.showMessageDialog(parentFrame,
+                                    "处理文件时发生错误: " + ex);
+                        }
+			         }
+			     }
+			 });
+		}
+		return lstFiles;
 	}
 	/**
 	 * This method initializes tableModel	
@@ -189,9 +350,6 @@ public class CalculatorPanel extends JPanel {
 		    
 			tableModel = new DefaultTableModel(columns, 0) {
 				public boolean isCellEditable(int row, int col) {
-				    if (col == FILES_COLUMN)
-				        return true;
-				    
 				    return false;
 				}
 			};
@@ -211,15 +369,7 @@ public class CalculatorPanel extends JPanel {
 
         // Editor of DESCRIPTION_COLUMN
         column = columnModel.getColumn(DESCRIPTION_COLUMN);
-        column.setPreferredWidth(412);
-
-        // Editor of FILES_COLUMN
-        flceFiles = new FileListCellEditor(parentFrame);
-
-        column = columnModel.getColumn(FILES_COLUMN);
-        column.setCellEditor(flceFiles);
-
-        column.setPreferredWidth(200);
+        column.setPreferredWidth(144);
     }
     /**
      * @param ouidCategory
@@ -273,34 +423,41 @@ public class CalculatorPanel extends JPanel {
         }
     }
 	
-    private void addRowToTable(DOSChangeable dosMHS) {
-        Vector rowData = new Vector(columnInfo.length);
-        for (int i = 0; i < columnInfo.length; i++) {
-            rowData.add(dosMHS.get(columnInfo[i][1]));
-        }
+    private void refreshLstFiles(String ouidMHS) {
+        Vector data = new Vector();
         
-        // 预先获取一个文件的名称
         try {
-            String ouid = (String)rowData.elementAt(RAW_OUID_COLUMN);
-            ArrayList files = dos.listFile(ouid);
+            ArrayList files = dos.listFile(ouidMHS);
             HashMap file = null;
             
             Iterator filesKey = files.iterator();
             while (filesKey.hasNext()) {
                 file = (HashMap)filesKey.next();
-                String clientPath = (String)file.get("md$description");
-                rowData.set(FILES_COLUMN, clientPath);
+                DOSChangeable dosFile = new DOSChangeable();
+                dosFile.setValueMap(file);
                 
-                break;// only need once
+                String fname = (String)dosFile.get("md$description");
+                File f = new File((String)dosFile.get("md$description"));
+                data.add(new DOSObjectAdapter(dosFile, f.getName()));
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        
+
+        lstFiles.clearSelection();
+        lstFiles.setListData(data);
+    }
+
+    private void addRowToTable(DOSChangeable dosMHS) {
+        Vector rowData = new Vector(columnInfo.length);
+        for (int i = 0; i < columnInfo.length; i++) {
+            rowData.add(dosMHS.get(columnInfo[i][1]));
+        }
+
         tableModel.addRow(rowData);
     }
     
     public static String getColumnDosName(int col) {
         return columnInfo[col][1];
     }
-}
+}  //  @jve:decl-index=0:visual-constraint="10,10"

@@ -29,6 +29,7 @@ import javax.swing.JTextField;
 
 import dyna.framework.service.DOS;
 import dyna.framework.service.dos.DOSChangeable;
+import java.awt.BorderLayout;
 /**
  * @author 李渊
  *
@@ -37,7 +38,6 @@ public class MaterialCalculator extends JDialog {
     public int choice = JOptionPane.CANCEL_OPTION;
     private static DOS dos = dyna.framework.client.DynaMOAD.dos;
     private DOSChangeable contextObj = null;
-    private static final String remarkTempl = "其中, 夹头 %j 压头 %y 每 %m 件一个夹头或压头";
     
 	private JPanel jPanel = null;
 	private JLabel jLabel = null;
@@ -55,12 +55,7 @@ public class MaterialCalculator extends JDialog {
 	private JLabel jLabel6 = null;
 	private JTextField txtMakePartNum = null;
 	private JPanel jPanel1 = null;
-	private JLabel jLabel7 = null;
-	private JTextField txtColletNum = null;
-	private JLabel jLabel8 = null;
-	private JTextField txtBallastNum = null;
-	private JLabel jLabel9 = null;
-	private JTextField txtEveryRange = null;
+	private JTextField txtRationRemark = null;
 	private JLabel jLabel10 = null;
 	private JComboBox cbxFormulae = null;
 	private JLabel jLabel11 = null;
@@ -376,25 +371,12 @@ public class MaterialCalculator extends JDialog {
 	private JPanel getJPanel1() {
 		if (jPanel1 == null) {
 			jLabel10 = new JLabel();
-			jLabel9 = new JLabel();
-			jLabel8 = new JLabel();
-			jLabel7 = new JLabel();
-			FlowLayout flowLayout20 = new FlowLayout();
 			jPanel1 = new JPanel();
-			jPanel1.setLayout(flowLayout20);
-			jLabel7.setText("其中, 夹头");
-			jLabel8.setText("压头");
-			jLabel9.setText("    每");
-			jLabel10.setText("件一个夹头或压头");
-			flowLayout20.setAlignment(java.awt.FlowLayout.LEFT);
+			jPanel1.setLayout(new BorderLayout());
+			jLabel10.setText("定额备注 ");
 			jPanel1.setBackground(new java.awt.Color(223,216,206));
-			jPanel1.add(jLabel7, null);
-			jPanel1.add(getTxtColletNum(), null);
-			jPanel1.add(jLabel8, null);
-			jPanel1.add(getTxtBallastNum(), null);
-			jPanel1.add(jLabel9, null);
-			jPanel1.add(getTxtEveryRange(), null);
-			jPanel1.add(jLabel10, null);
+			jPanel1.add(jLabel10, java.awt.BorderLayout.WEST);
+			jPanel1.add(getTxtRationRemark(), java.awt.BorderLayout.CENTER);
 		}
 		return jPanel1;
 	}
@@ -403,36 +385,11 @@ public class MaterialCalculator extends JDialog {
 	 * 	
 	 * @return javax.swing.JTextField	
 	 */    
-	private JTextField getTxtColletNum() {
-		if (txtColletNum == null) {
-			txtColletNum = new JTextField();
-			txtColletNum.setColumns(2);
+	private JTextField getTxtRationRemark() {
+		if (txtRationRemark == null) {
+			txtRationRemark = new JTextField();
 		}
-		return txtColletNum;
-	}
-	/**
-	 * This method initializes jTextField5	
-	 * 	
-	 * @return javax.swing.JTextField	
-	 */    
-	private JTextField getTxtBallastNum() {
-		if (txtBallastNum == null) {
-			txtBallastNum = new JTextField();
-			txtBallastNum.setColumns(2);
-		}
-		return txtBallastNum;
-	}
-	/**
-	 * This method initializes jTextField6	
-	 * 	
-	 * @return javax.swing.JTextField	
-	 */    
-	private JTextField getTxtEveryRange() {
-		if (txtEveryRange == null) {
-			txtEveryRange = new JTextField();
-			txtEveryRange.setColumns(2);
-		}
-		return txtEveryRange;
+		return txtRationRemark;
 	}
 	/**
 	 * This method initializes jComboBox2	
@@ -568,26 +525,7 @@ public class MaterialCalculator extends JDialog {
             // 定额备注
             tmpObject = contextObj.get("Material Ration Remarks");
             if (tmpObject != null) {
-                try {
-                    String tmpString = tmpObject.toString();
-                    // 夹头
-                    int start = tmpString.indexOf("夹头") + 3;
-                    int end = tmpString.indexOf(" ", start);
-                    String tmpNum = tmpString.substring(start, end);
-                    txtColletNum.setText(tmpNum);
-                    // 压头
-                    start = tmpString.indexOf("压头") + 3;
-                    end = tmpString.indexOf(" ", start);
-                    tmpNum = tmpString.substring(start, end);
-                    txtBallastNum.setText(tmpNum);
-                    // 每
-                    start = tmpString.indexOf("每") + 2;
-                    end = tmpString.indexOf(" ", start);
-                    tmpNum = tmpString.substring(start, end);
-                    txtEveryRange.setText(tmpNum);
-                } catch (Exception e) {
-                    // Maybe we should got error, but no matter
-                }
+                txtRationRemark.setText(tmpObject.toString());
             }
             
             // 毛坯单位
@@ -813,16 +751,7 @@ public class MaterialCalculator extends JDialog {
         objAdapter = (DOSObjectAdapter)cbxRoughUom.getSelectedItem();
         contextObj.put("rough_uom", objAdapter == null ? null : objAdapter.get("ouid")); // 毛坯单位
         
-        if (txtColletNum.getText().trim().equals("") && txtBallastNum.getText().trim().equals("") 
-                && txtEveryRange.getText().trim().equals("")) {
-            tmpString = null;
-        } else {
-            tmpString = remarkTempl.replaceAll("%j", txtColletNum.getText());
-            tmpString = tmpString.replaceAll("%y", txtBallastNum.getText());
-            tmpString = tmpString.replaceAll("%m", txtEveryRange.getText());
-        }
-        
-        contextObj.put("Material Ration Remarks", tmpString); // 定额备注
+        contextObj.put("Material Ration Remarks", txtRationRemark.getText()); // 定额备注
         
         // 工艺定额利用率 material usage ratio
         try {

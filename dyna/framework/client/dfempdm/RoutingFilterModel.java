@@ -20,7 +20,7 @@ public class RoutingFilterModel extends AbstractTableModel implements
     protected RoutingTableModel model = null;
     private String ouidMatchWorkshop = "";
     private String ouidMatchOpSpec = "";
-
+    private String matchWorkshopSequence = "";
     
     public RoutingFilterModel(JTable table, RoutingTableModel model) {
         this.table = table;
@@ -29,9 +29,10 @@ public class RoutingFilterModel extends AbstractTableModel implements
         model.addTableModelListener(this);
     }
 
-    public void setFilterInfo(String ouidWorkshop, String ouidOpSpec) {
+    public void setFilterInfo(String ouidWorkshop, String ouidOpSpec, String workshopSquence) {
         ouidMatchWorkshop = ouidWorkshop;
         ouidMatchOpSpec = ouidOpSpec;
+        matchWorkshopSequence = workshopSquence;
     }
 
     public int getRowCount() {
@@ -49,15 +50,15 @@ public class RoutingFilterModel extends AbstractTableModel implements
     }
 
     public Object getValueAt(int row, int col) {
-        return model.getValueAt(convertRowIndexToModel(row), col);
+        return model.getValueAt(convertViewRowToModel(row), col);
     }
 
     public void setValueAt(Object value, int row, int col) {
-        model.setValueAt(value, convertRowIndexToModel(row), col);
+        model.setValueAt(value, convertViewRowToModel(row), col);
     }
 
     public boolean isCellEditable(int row, int column) {
-        return model.isCellEditable(convertRowIndexToModel(row), column);
+        return model.isCellEditable(convertViewRowToModel(row), column);
     }
 
     // By default, implement TableModel by forwarding all messages
@@ -85,7 +86,8 @@ public class RoutingFilterModel extends AbstractTableModel implements
 
     public boolean needFilter() {
         return !((ouidMatchWorkshop == null || "".equals(ouidMatchWorkshop))
-                && (ouidMatchOpSpec == null || "".equals(ouidMatchOpSpec)));
+                && (ouidMatchOpSpec == null || "".equals(ouidMatchOpSpec))
+                && (matchWorkshopSequence == null || "".equals(matchWorkshopSequence)));
     }
 
     public boolean isMatch(int row) {
@@ -104,10 +106,17 @@ public class RoutingFilterModel extends AbstractTableModel implements
         if (!ouidMatchOpSpec.equals("") && !ouidMatchOpSpec.equals(value))
             return false;
 
+        // 以分厂工艺路线顺序条件过滤
+        value = model.getValueAt(row,
+                RoutingTableModel.WORKSHOP_SEQUENCE_COLUMN);
+
+        if (!matchWorkshopSequence.equals("") && !matchWorkshopSequence.equals(value))
+            return false;
+
         return true;
     }
 
-    public int convertRowIndexToModel(int viewRowIndex) {
+    public int convertViewRowToModel(int viewRowIndex) {
         if (!needFilter())
             return viewRowIndex;
 
@@ -128,7 +137,7 @@ public class RoutingFilterModel extends AbstractTableModel implements
         return modelIndex;
     }
 
-    public int convertRowIndexToView(int modelRowIndex) {
+    public int convertModelRowToView(int modelRowIndex) {
         if (!needFilter())
             return modelRowIndex;
 

@@ -86,8 +86,6 @@ public class FileListCellEditor extends AbstractCellEditor implements
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(parentFrame, "处理文件时发生错误: " + ex);
                 }
-                
-//              stopCellEditing();
             }
         });
         

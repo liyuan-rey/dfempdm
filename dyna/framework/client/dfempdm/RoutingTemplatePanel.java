@@ -5,8 +5,6 @@
 package dyna.framework.client.dfempdm;
 
 import java.awt.BorderLayout;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Vector;
@@ -35,21 +33,21 @@ public class RoutingTemplatePanel extends JPanel {
 	public static final int WORKSHOP_COLUMN = 1; // 加工分厂
 	public static final int WORKCENTER_COLUMN = 2; // 工作中心
 	public static final int OPERATION_SPECIALTY_COLUMN = 3; // 工艺专业类型
-	public static final int WORKSHOP_SEQUENCE_COLUMN = 4; // 分厂工艺路线顺序
-	public static final int DESCRIPTION_COLUMN = 5; // 描述
+//	public static final int WORKSHOP_SEQUENCE_COLUMN = 4; // 分厂工艺路线顺序
+	public static final int DESCRIPTION_COLUMN = 4; // 描述
 	// 以下是隐藏列
-	public static final int ROUTING_CATEGORY_COLUMN = 6; // 模板类别
-	public static final int RAW_OUID_COLUMN = 7; // Routing 对象的 ouid
-	public static final int RAW_WORKSHOP_COLUMN = 8; // workshop codeitem 的 ouid
-	public static final int RAW_WORKCENTER_COLUMN = 9; // workcenter 的 ouid
-	public static final int RAW_OPERATION_SPECIALTY_COLUMN = 10; // Operation Specialty codeitem 的 ouid
+	public static final int ROUTING_CATEGORY_COLUMN = 5; // 模板类别
+	public static final int RAW_OUID_COLUMN = 6; // Routing 对象的 ouid
+	public static final int RAW_WORKSHOP_COLUMN = 7; // workshop codeitem 的 ouid
+	public static final int RAW_WORKCENTER_COLUMN = 8; // workcenter 的 ouid
+	public static final int RAW_OPERATION_SPECIALTY_COLUMN = 9; // Operation Specialty codeitem 的 ouid
 
 	private static final String[][] columnInfo = { //说明: {"表格列名", "对应的 Routing Template DOSChangable 对象的 HashMap key"}
 	        {"序", "Squence"},
 	        {"加工分厂", "name@Workshop"},
 	        {"工作中心", "name@Workcenter"},
 	        {"工艺专业类型", "name@Operation Specialty"},
-	        {"分厂工艺路线顺序", "Workshop Squence"},
+//	        {"分厂工艺路线顺序", "Workshop Squence"},
 	        {"描述", "md$description"},
 	        // 以下是隐藏列
 	        {"Routing Category", "Routing Category"},
@@ -169,13 +167,9 @@ public class RoutingTemplatePanel extends JPanel {
 			templTable.getTableHeader().setReorderingAllowed(false);
 			templTable.setRowHeight(22);
 			
-//			templTable.setCellSelectionEnabled(true);
 			templTable.setColumnSelectionAllowed(true);
-//			templTable.setRowSelectionAllowed(true);
-			templTable.setSelectionMode(//ListSelectionModel.SINGLE_SELECTION
-			        ListSelectionModel.SINGLE_INTERVAL_SELECTION
-			        //ListSelectionModel.MULTIPLE_INTERVAL_SELECTION
-			        );
+			templTable.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+			
 	        // Remove column of raw data
 			TableColumnModel columnModel = templTable.getColumnModel();
 			
@@ -184,65 +178,15 @@ public class RoutingTemplatePanel extends JPanel {
 			templTable.removeColumn(columnModel.getColumn(RAW_WORKSHOP_COLUMN));
 			templTable.removeColumn(columnModel.getColumn(RAW_OUID_COLUMN));
 			templTable.removeColumn(columnModel.getColumn(ROUTING_CATEGORY_COLUMN));
-			
-			templTable.addMouseListener(new MouseAdapter() {
-                // 鼠标左键复制, 将选中的对象复制到本地剪贴板
-                public void mouseReleased(MouseEvent e) {
-                    if (e.getButton() == MouseEvent.BUTTON1) { // 左键
-                        doCopyTemplate();
-                    }
-                }
-			});
 		}
 		return templTable;
 	}
-    /**
-     * 
-     */
-    public void doCopyTemplate() {
-	    int[] selRows = templTable.getSelectedRows();
-	    if (selRows == null || selRows.length < 1
-	            || selRows[0] < 0
-	            || selRows[0] >= templTable.getRowCount())
-	        return;
-        
-	    try {
-	        final String format =
-	            "%" + columnInfo[SEQUENCE_NO_COLUMN][1] + "%\t" + 
-	            "%" + columnInfo[WORKSHOP_COLUMN][1] + "%\t" +
-	            "%" + columnInfo[WORKCENTER_COLUMN][1] + "%\t" +
-	            "%" + columnInfo[OPERATION_SPECIALTY_COLUMN][1] + "%\t" +
-	            "%" + columnInfo[WORKSHOP_SEQUENCE_COLUMN][1] + "%\t" +
-	            "%" + columnInfo[DESCRIPTION_COLUMN][1] + "%\t" +
-	            "%" + columnInfo[ROUTING_CATEGORY_COLUMN][1] + "%\n";
-	        
-		    // Prepare clipboard data
-		    DOSArrayList datas = new DOSArrayList(selRows.length);
-	
-		    for (int i = 0; i < selRows.length; i++) {
-		        String ouid = (String)tableModel.getValueAt(selRows[i], RAW_OUID_COLUMN);
-		        DOSChangeable dosObj = dos.get(ouid);
-		        datas.add(new DOSObjectAdapter(dosObj, format, DOSObjectAdapter.ROUTING_TEMPLATE));
-		    }
-		    
-		    DOSObjectSelection selection = new DOSObjectSelection(datas);
-		    
-		    // Copy to local clipboard
-		    RoutingEditor.clipboard.setContents(selection, null);
-		    
-//		    // Copy to system clipboard
-//		    Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-//		    clipboard.setContents(selection, null);
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	    }
-    }
 	/**
 	 * This method initializes tableModel	
 	 * 	
 	 * @return javax.swing.table.DefaultTableModel	
 	 */    
-	private DefaultTableModel getTableModel() {
+	public DefaultTableModel getTableModel() {
 		if (tableModel == null) {
 		    Vector columns = new Vector(columnInfo.length);
 		    for (int i = 0; i < columnInfo.length; i++)

@@ -29,13 +29,14 @@ public class RoutingTableModel extends AbstractTableModel {
 	public static final int OPERATING_TIME_COLUMN = 10; // 操作时间
 	public static final int PROCESS_NUM_COLUMN = 11; // 加工数量
 	public static final int OPERATOR_NUM_COLUMN = 12; // 操作人数
-	public static final int ATTACHMENT_COLUMN = 13; // 附件
+	public static final int OPERATION_REMARK_COLUMN = 13; // 工时备注
+	public static final int ATTACHMENT_COLUMN = 14; // 附件
 	// 以下是隐藏列
-	public static final int RAW_OUID_COLUMN = 14; // Routing 对象的 ouid
-	public static final int RAW_WORKSHOP_COLUMN = 15; // workshop codeitem 的 ouid
-	public static final int RAW_WORKCENTER_COLUMN = 16; // workcenter 的 ouid
-	public static final int RAW_OPERATION_SPECIALTY_COLUMN = 17; // Operation Specialty codeitem 的 ouid
-	public static final int RAW_SEQUENCE_TYPE_COLUMN = 18; // Sequence Type codeitem 的 ouid
+	public static final int RAW_OUID_COLUMN = 15; // Routing 对象的 ouid
+	public static final int RAW_WORKSHOP_COLUMN = 16; // workshop codeitem 的 ouid
+	public static final int RAW_WORKCENTER_COLUMN = 17; // workcenter 的 ouid
+	public static final int RAW_OPERATION_SPECIALTY_COLUMN = 18; // Operation Specialty codeitem 的 ouid
+	public static final int RAW_SEQUENCE_TYPE_COLUMN = 19; // Sequence Type codeitem 的 ouid
 
 	private static final String[][] columnInfo = { //说明: {"表格列名", "对应的 Routing DOSChangable 对象的 HashMap key"}
 	        {"序", "Sequence"},
@@ -51,6 +52,7 @@ public class RoutingTableModel extends AbstractTableModel {
 	        {"操作时间(小时)", "Operating Time"},
 	        {"数量", "Part Quantity"},
 	        {"人数", "Operator Count"},
+	        {"工时备注", "operationremarks"},
 	        {"附件数", "defaultFileNumber"},
 	        // 以下是隐藏列
 	        {"ouid", "ouid"},
@@ -71,7 +73,7 @@ public class RoutingTableModel extends AbstractTableModel {
         {RoutingTemplatePanel.SEQUENCE_NO_COLUMN, RoutingTableModel.SEQUENCE_NO_COLUMN},
         {RoutingTemplatePanel.WORKSHOP_COLUMN, RoutingTableModel.WORKSHOP_COLUMN},
         {RoutingTemplatePanel.WORKCENTER_COLUMN, RoutingTableModel.WORKCENTER_COLUMN},
-        {RoutingTemplatePanel.WORKSHOP_SEQUENCE_COLUMN, RoutingTableModel.WORKSHOP_SEQUENCE_COLUMN},
+//        {RoutingTemplatePanel.WORKSHOP_SEQUENCE_COLUMN, RoutingTableModel.WORKSHOP_SEQUENCE_COLUMN},
         {RoutingTemplatePanel.OPERATION_SPECIALTY_COLUMN, RoutingTableModel.OPERATION_SPECIALTY_COLUMN},
         {RoutingTemplatePanel.DESCRIPTION_COLUMN, RoutingTableModel.DESCRIPTION_COLUMN},
         {RoutingTemplatePanel.RAW_WORKSHOP_COLUMN, RoutingTableModel.RAW_WORKSHOP_COLUMN},
@@ -129,43 +131,51 @@ public class RoutingTableModel extends AbstractTableModel {
 	        return false;
 	    
 	    // 优先编辑模式验证 editMode
-	    if (editMode == 0) {
+	    if (editMode == 0)
 	        return false;
-	    } else if (editMode == 1) {
-	        if (col == PREPARATION_TIME_COLUMN ||
-	            col == OPERATING_TIME_COLUMN ||
-	            col == PROCESS_NUM_COLUMN ||
-	            col == OPERATOR_NUM_COLUMN)
-	            return false;
-	    } else if (editMode == 2) {
-	        if (col == SEQUENCE_NO_COLUMN ||
-	            col == WORKSHOP_COLUMN ||
-	            col == WORKCENTER_COLUMN ||
-	            col == OPERATION_SPECIALTY_COLUMN ||
-	            col == WORKSHOP_SEQUENCE_COLUMN ||
-	            col == SEQUENCE_TYPE_COLUMN ||
-	            col == ENTER_SEQUENCE_COLUMN ||
-	            col == END_SEQUENCE_COLUMN ||
-	            col == DESCRIPTION_COLUMN ||
-	            col == ATTACHMENT_COLUMN)
-	            return false;
+	    
+	    boolean bEditable = false;
+	    if ((editMode & 1) == 1) {
+	        if (//col == SEQUENCE_NO_COLUMN ||
+//		            col == WORKSHOP_COLUMN ||
+		            col == WORKCENTER_COLUMN ||
+//		            col == OPERATION_SPECIALTY_COLUMN ||
+//		            col == WORKSHOP_SEQUENCE_COLUMN ||
+		            col == SEQUENCE_TYPE_COLUMN ||
+		            col == ENTER_SEQUENCE_COLUMN ||
+		            col == END_SEQUENCE_COLUMN ||
+		            col == DESCRIPTION_COLUMN ||
+		            col == ATTACHMENT_COLUMN)
+	            bEditable = true;
 	    }
 	    
+	    if ((editMode & 2) == 2) {
+	        if (col == PREPARATION_TIME_COLUMN ||
+		            col == OPERATING_TIME_COLUMN ||
+		            col == PROCESS_NUM_COLUMN ||
+		            col == OPERATOR_NUM_COLUMN ||
+		            col == OPERATION_REMARK_COLUMN)
+	            bEditable = true;
+	    }
+	    
+	    if (!bEditable)
+	        return false;
+	    
 	    // 其次进行编辑者工种验证 authorTypes
-        if (col == SEQUENCE_NO_COLUMN ||
-	            col == WORKSHOP_COLUMN ||
-	            col == WORKCENTER_COLUMN ||
-	            col == OPERATION_SPECIALTY_COLUMN ||
-	            col == WORKSHOP_SEQUENCE_COLUMN ||
-	            col == SEQUENCE_TYPE_COLUMN ||
-	            col == ENTER_SEQUENCE_COLUMN ||
-	            col == END_SEQUENCE_COLUMN ||
-	            col == DESCRIPTION_COLUMN ||
-	            col == ATTACHMENT_COLUMN) {
+//        if (col == SEQUENCE_NO_COLUMN ||
+//	            col == WORKSHOP_COLUMN ||
+//	            col == WORKCENTER_COLUMN ||
+//	            col == OPERATION_SPECIALTY_COLUMN ||
+//	            col == WORKSHOP_SEQUENCE_COLUMN ||
+//	            col == SEQUENCE_TYPE_COLUMN ||
+//	            col == ENTER_SEQUENCE_COLUMN ||
+//	            col == END_SEQUENCE_COLUMN ||
+//	            col == DESCRIPTION_COLUMN ||
+//	            col == ATTACHMENT_COLUMN) {
             String ouidOpSpec = (String)getValueAt(row, RAW_OPERATION_SPECIALTY_COLUMN);
             if (authorTypes.contains(ouidOpSpec) == false)
                 return false;
-        }
+//        }
 
 	    // 最后进行常规编辑状态验证
 		if (col == SEQUENCE_NO_COLUMN) {
@@ -188,9 +198,10 @@ public class RoutingTableModel extends AbstractTableModel {
         if (isCellEditable(row, col) == false)
             return;
         
+        // check if we need update
         DOSChangeable dosRouting = (DOSChangeable)data.get(row);
         Object oldValue = dosRouting.get(columnInfo[col][1]);
-        if (oldValue.equals(value.toString()))
+        if (oldValue != null && oldValue.equals(value.toString()))
             return;
 	    
         // 更新隐藏的 ouid
@@ -241,7 +252,7 @@ public class RoutingTableModel extends AbstractTableModel {
                         return;
                     }
 */
-                    Exception e = new Exception("Unexcept call about setValueAt.");
+                    Exception e = new Exception("Unexcept call of setValueAt().");
                     e.printStackTrace();
                     return;
                 }
@@ -311,24 +322,22 @@ public class RoutingTableModel extends AbstractTableModel {
     }
     
     /**
+     * @param indexWorkshop
+     * @param dosOpSpec
+     * @param dosWorkshop
      * 
      */
-    public void addNew() {
+    public void addNew(DOSObjectAdapter dosWorkshop, DOSObjectAdapter dosOpSpec, int indexWorkshop, int index) {
         DOSChangeable dosNewRouting = new DOSChangeable();
         dosNewRouting.setClassOuid(ouidRoutingClass);
 
-        int rows = getRowCount();
-        if (rows > 0) { // if we have data, use the data of last row to create new row
-            DOSChangeable dosLastRouting = (DOSChangeable)data.get(getRowCount()-1);
-            
-            dosNewRouting.put(columnInfo[WORKSHOP_COLUMN][1], dosLastRouting.get(columnInfo[WORKSHOP_COLUMN][1]));
-            dosNewRouting.put(columnInfo[RAW_WORKSHOP_COLUMN][1], dosLastRouting.get(columnInfo[RAW_WORKSHOP_COLUMN][1]));
-            dosNewRouting.put(columnInfo[OPERATION_SPECIALTY_COLUMN][1], dosLastRouting.get(columnInfo[OPERATION_SPECIALTY_COLUMN][1]));
-            dosNewRouting.put(columnInfo[RAW_OPERATION_SPECIALTY_COLUMN][1], dosLastRouting.get(columnInfo[RAW_OPERATION_SPECIALTY_COLUMN][1]));
-            dosNewRouting.put(columnInfo[WORKSHOP_SEQUENCE_COLUMN][1], dosLastRouting.get(columnInfo[WORKSHOP_SEQUENCE_COLUMN][1]));
-        }
-        
-        addRow(dosNewRouting, true);
+        dosNewRouting.put(columnInfo[WORKSHOP_COLUMN][1], dosWorkshop.toString());
+        dosNewRouting.put(columnInfo[RAW_WORKSHOP_COLUMN][1], dosWorkshop.get("ouid"));
+        dosNewRouting.put(columnInfo[OPERATION_SPECIALTY_COLUMN][1], dosOpSpec.toString());
+        dosNewRouting.put(columnInfo[RAW_OPERATION_SPECIALTY_COLUMN][1], dosOpSpec.get("ouid"));
+        dosNewRouting.put(columnInfo[WORKSHOP_SEQUENCE_COLUMN][1], Integer.toString(indexWorkshop + 1));
+
+        addRow(index, dosNewRouting, false);
     }
 
     /**

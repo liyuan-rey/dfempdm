@@ -27,7 +27,6 @@ import dyna.framework.service.dos.DOSChangeable;
 
 /**
  * @author ภ๎ิจ
- *
  */
 public class FileCellEditor extends AbstractCellEditor implements
         TableCellEditor {

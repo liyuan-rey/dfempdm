@@ -38,10 +38,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.UIManager;
-import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.JTableHeader;
@@ -1825,7 +1822,7 @@ public class RoutingEditor extends JFrame {
         }
         
         if (msg.length() > 0) {
-            JDialog msgDlg = createInformationDialog(this, "提示", "下列数据填写不正确:\n" + msg + "请修正后重新保存.");
+            JDialog msgDlg = util.createInformationDialog(this, "提示", "下列数据填写不正确:\n" + msg + "请修正后重新保存.");
             msgDlg.show();
             msgDlg = null;
             
@@ -1835,29 +1832,7 @@ public class RoutingEditor extends JFrame {
         return true;
     }
 
-    private static JDialog createInformationDialog(JFrame parent, String title, String msg) {
-        JDialog dialog = new JDialog(parent, title, true);
-        
-        JTextArea content = new JTextArea(msg);
-        content.setEditable(false);
-
-	    JScrollPane scrollPane = new JScrollPane();
-	    scrollPane.setViewportView(content);
-
-        JPanel panel = new JPanel();
-        panel.setLayout(new BorderLayout());
-        panel.setBorder(new EmptyBorder(5,5,5,5));
-        panel.add(scrollPane, BorderLayout.CENTER);
-        
-        dialog.setContentPane(panel);
-        
-        dialog.setSize(250, 380);
-        util.CenterWindow(null, dialog);
-        
-        return dialog;
-    }
-    
-	/**
+    /**
 	 * This method initializes textAreaPanel	
 	 * 	
 	 * @return dyna.framework.client.dfempdm.TextAreaPanel	
@@ -1894,15 +1869,4 @@ public class RoutingEditor extends JFrame {
 	    return true;
 	}
     
- 	// for test ui
-    public static void main(String[] args) {
-	    try {
-	        UIManager.setLookAndFeel("com.jgoodies.plaf.plastic.PlasticLookAndFeel");
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	    }
-	    
-	    RoutingEditor editor = new RoutingEditor();
-	    editor.show();
-    }
 } //  @jve:decl-index=0:visual-constraint="10,10"

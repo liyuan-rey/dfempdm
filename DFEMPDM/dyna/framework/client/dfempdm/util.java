@@ -4,12 +4,19 @@
  */
 package dyna.framework.client.dfempdm;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.util.ArrayList;
 
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.border.EmptyBorder;
 
 import dyna.framework.service.dos.DOSChangeable;
 
@@ -46,6 +53,7 @@ public class util {
             String ouid = (String)dosSqType.get("ouid");
             ArrayList codeList = dyna.framework.client.DynaMOAD.dos.listCodeItem(ouid);
             
+            boolean matched = false;
             int size = codeList.size();
             for (int i = 0; i < size; i++) {
                 DOSChangeable codeItem = (DOSChangeable)codeList.get(i);
@@ -53,12 +61,40 @@ public class util {
                     continue;
                 
                 combo.addItem(new DOSObjectAdapter(codeItem, "%name% [%codeitemid%]"));
+                
                 if (selItemId != null && !selItemId.equals("")) {
-                    if (selItemId.equals(codeItem.get("ouid")))
+                    if (selItemId.equals(codeItem.get("ouid"))) {
                         combo.setSelectedIndex(combo.getItemCount()-1);
+                        matched = true;
+                    }
                 }
             }
+            
+            if (!matched)
+                combo.setSelectedIndex(-1);
         }
+    }
+
+    public static JDialog createInformationDialog(JFrame parent, String title, String msg) {
+        JDialog dialog = new JDialog(parent, title, true);
+        
+        JTextArea content = new JTextArea(msg);
+        content.setEditable(false);
+    
+        JScrollPane scrollPane = new JScrollPane();
+        scrollPane.setViewportView(content);
+    
+        JPanel panel = new JPanel();
+        panel.setLayout(new BorderLayout());
+        panel.setBorder(new EmptyBorder(5,5,5,5));
+        panel.add(scrollPane, BorderLayout.CENTER);
+        
+        dialog.setContentPane(panel);
+        
+        dialog.setSize(250, 380);
+        CenterWindow(null, dialog);
+        
+        return dialog;
     }
 
 }

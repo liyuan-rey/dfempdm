@@ -94,7 +94,7 @@ public class TextAreaPanel extends JPanel {
          */
         public myCellEditor() {
             editor = new JTextArea();
-            editor.setDocument(txtContent.getDocument()); // 同步编辑
+            editor.setDocument(getTxtContent().getDocument()); // 同步编辑
         }
 
         /*

@@ -573,7 +573,7 @@ public class MaterialCalculator extends JFrame {
     
     private void refreshCbxFormulae() {
         cbxFormulae.removeAllItems();
-        cbxFormulae.addItem("<无>"); // At least we have one line
+        cbxFormulae.addItem(""); // At least we have one line
         cbxFormulae.setSelectedIndex(0);
         
         final String ouidOfFormulaClass = "8605def4";
@@ -671,7 +671,9 @@ public class MaterialCalculator extends JFrame {
         txtRoughQty.setText(tmpString);
         // 毛坯下料尺寸
         tmpString = (String)dosFormula.get("r_material_dim");
-        if (tmpString != null) {
+        if (tmpString == null) {
+            txtMaterialDim.setText("");
+        } else {
             String [] pieces = tmpString.split(Formulae.opRegex);
             
             for (int i = 0; i < pieces.length; i++) {
@@ -683,6 +685,34 @@ public class MaterialCalculator extends JFrame {
             }
             
             txtMaterialDim.setText(tmpString);
+        }
+        // 毛坯单位
+        tmpString = (String)dosFormula.get("rough_uom");
+        if (tmpString == null) {
+            cbxRoughUom.setSelectedIndex(-1);
+        } else {
+            int size = cbxRoughUom.getItemCount();
+            for (int i = 0; i < size; i++) {
+                DOSObjectAdapter dosAdapter = (DOSObjectAdapter)cbxRoughUom.getItemAt(i);
+                if (tmpString.equals(dosAdapter.get("ouid"))) {
+                    cbxRoughUom.setSelectedIndex(i);
+                    break;
+                }
+            }
+        }
+        // 材料单位
+        tmpString = (String)dosFormula.get("m_uom");
+        if (tmpString == null) {
+            cbxMaterialUom.setSelectedIndex(-1);
+        } else {
+            int size = cbxRoughUom.getItemCount();
+            for (int i = 0; i < size; i++) {
+                DOSObjectAdapter dosAdapter = (DOSObjectAdapter)cbxMaterialUom.getItemAt(i);
+                if (tmpString.equals(dosAdapter.get("ouid"))) {
+                    cbxMaterialUom.setSelectedIndex(i);
+                    break;
+                }
+            }
         }
     }
 
@@ -723,10 +753,10 @@ public class MaterialCalculator extends JFrame {
         contextObj.put("materialration", dRation); // 定额
         
         DOSObjectAdapter objAdapter = (DOSObjectAdapter)cbxMaterialUom.getSelectedItem();
-        contextObj.put("m_uom", objAdapter.get("ouid")); // 材料单位
+        contextObj.put("m_uom", objAdapter == null ? null : objAdapter.get("ouid")); // 材料单位
         
         objAdapter = (DOSObjectAdapter)cbxRoughUom.getSelectedItem();
-        contextObj.put("rough_uom", objAdapter.get("ouid")); // 毛坯单位
+        contextObj.put("rough_uom", objAdapter == null ? null : objAdapter.get("ouid")); // 毛坯单位
         
         tmpString = remarkTempl.replaceAll("%j", txtColletNum.getText());
         tmpString = tmpString.replaceAll("%y", txtBallastNum.getText());
@@ -743,7 +773,8 @@ public class MaterialCalculator extends JFrame {
             
             contextObj.put("material usage ratio", dRatio);
         } catch (Exception e) {
-            System.err.println("计算工艺定额利用率时出错. \n" + e);
+            System.err.println("数据不全, 计算工艺定额利用率时出错. \n" + e);
+            contextObj.put("material usage ratio", null);
         }
         
         try {

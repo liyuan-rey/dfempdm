@@ -26,7 +26,7 @@ public class HowTo {
 			RoutingEditor editor = new RoutingEditor();
 			
 			ArrayList OpTypes = new ArrayList();
-			String [] testOpTypes = {"8605728e", /*"8605ddf8", */"11111111"}; // OpSpec code item ouid for test
+			String [] testOpTypes = {"8605728e", "8605ddf8"}; // OpSpec code item ouid for test
 			for (int i = 0; i < testOpTypes.length; i++) {
 				OpTypes.add(testOpTypes[i]);
 			}

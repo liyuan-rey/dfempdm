@@ -52,7 +52,8 @@ public class HowTo {
 			
 			calculator.setContextObject(dosObj);
 			
-			calculator.pack();
+			//calculator.pack();
+			calculator.setSize(590, 340);
 			util.centerWindow(null, calculator);
 			calculator.show();
 			

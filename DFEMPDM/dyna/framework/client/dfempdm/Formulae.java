@@ -31,8 +31,10 @@ import bsh.Interpreter;
  */
 public class Formulae extends JDialog {
     public static final String opRegex = "[\\+\\-\\*/\\(\\)]";
+    
     private HashMap varMap = new HashMap();
-    private Double calcResult = null;
+    private Double rationResult = null;
+    private Double roughWeightResult = null;
     public int userChoice = JOptionPane.CANCEL_OPTION;
 
 	private JPanel jPanel = null;
@@ -140,7 +142,12 @@ public class Formulae extends JDialog {
 			btnOk.setText("计算");
 			btnOk.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
-                    String evalString = lblFormula.getText();
+                    String rationEvalString = lblFormula.getText();
+                    String roughWeightEvalString = rationEvalString.replaceAll(
+                            "系数", "1"); //XXX: if the quotiety is always been 
+                                         // used with * or /, it's ok
+                    					 // otherwise we need a more smart way...
+                    
                     String msg = "";
                     
                     Iterator i = varMap.keySet().iterator();
@@ -149,7 +156,9 @@ public class Formulae extends JDialog {
                         try {
                             JTextField tmpField = (JTextField)varMap.get(varName);
                             Double value = new Double(tmpField.getText());
-                            evalString = evalString.replaceAll(varName, value.toString());
+                            
+                            rationEvalString = rationEvalString.replaceAll(varName, value.toString());
+                            roughWeightEvalString = roughWeightEvalString.replaceAll(varName, value.toString());
                         } catch (Exception e1) {
                             msg += varName + ", ";
                         }
@@ -164,13 +173,13 @@ public class Formulae extends JDialog {
                     }
                     
                     Interpreter interp = new Interpreter(); 
-            		try
-            		{
-            			Object result = interp.eval(evalString);
-            			calcResult = Double.valueOf(result.toString());
-            		}
-            		catch(Exception e1)
-            		{
+            		try {
+            			Object result = interp.eval(rationEvalString);
+            			rationResult = Double.valueOf(result.toString());
+            			
+            			result = interp.eval(roughWeightEvalString);
+            			roughWeightResult = Double.valueOf(result.toString());
+            		} catch(Exception e1) {
             			JOptionPane.showMessageDialog(Formulae.this, "计算出现错误, 请检查公式是否正确.");
             			return;
             		}
@@ -288,7 +297,11 @@ public class Formulae extends JDialog {
 	    return true;
 	}
 	
-	public double getResult() {
-	    return calcResult.doubleValue();
+	public double getRationResult() {
+	    return rationResult.doubleValue();
+	}
+
+	public double getRoughWeightResult() {
+	    return roughWeightResult.doubleValue();
 	}
 }  //  @jve:decl-index=0:visual-constraint="10,10"

@@ -70,6 +70,8 @@ public class MaterialCalculator extends JDialog {
 	private JTextField txtRation = null;
 	private JLabel jLabel12 = null;
 	private JScrollPane jScrollPane = null;
+	private JLabel jLabel13 = null;
+	private JTextField txtRoughtWeight = null;
 	/**
 	 * This method initializes 
 	 * 
@@ -97,6 +99,9 @@ public class MaterialCalculator extends JDialog {
 	 */    
 	private JPanel getJPanel() {
 		if (jPanel == null) {
+			jLabel13 = new JLabel();
+			GridBagConstraints gridBagConstraints110 = new GridBagConstraints();
+			GridBagConstraints gridBagConstraints21 = new GridBagConstraints();
 			jLabel12 = new JLabel();
 			jLabel11 = new JLabel();
 			jLabel6 = new JLabel();
@@ -130,7 +135,7 @@ public class MaterialCalculator extends JDialog {
 			jPanel.setLayout(new GridBagLayout());
 			gridBagConstraints1.gridx = 0;
 			gridBagConstraints1.gridy = 5;
-			gridBagConstraints1.anchor = java.awt.GridBagConstraints.WEST;
+			gridBagConstraints1.anchor = java.awt.GridBagConstraints.EAST;
 			gridBagConstraints1.insets = new java.awt.Insets(0,0,5,0);
 			jLabel.setText("毛坯下料尺寸");
 			gridBagConstraints2.gridx = 1;
@@ -141,6 +146,7 @@ public class MaterialCalculator extends JDialog {
 			gridBagConstraints3.gridx = 2;
 			gridBagConstraints3.gridy = 5;
 			gridBagConstraints3.insets = new java.awt.Insets(0,5,5,0);
+			gridBagConstraints3.anchor = java.awt.GridBagConstraints.EAST;
 			jLabel1.setText("毛坯数量");
 			gridBagConstraints4.gridx = 3;
 			gridBagConstraints4.gridy = 5;
@@ -170,31 +176,32 @@ public class MaterialCalculator extends JDialog {
 			gridBagConstraints9.anchor = java.awt.GridBagConstraints.WEST;
 			gridBagConstraints9.insets = new java.awt.Insets(0,5,5,0);
 			gridBagConstraints10.gridx = 0;
-			gridBagConstraints10.gridy = 6;
-			gridBagConstraints10.anchor = java.awt.GridBagConstraints.WEST;
+			gridBagConstraints10.gridy = 7;
+			gridBagConstraints10.anchor = java.awt.GridBagConstraints.EAST;
 			gridBagConstraints10.insets = new java.awt.Insets(0,0,5,0);
 			jLabel4.setText("毛坯单位");
 			gridBagConstraints11.gridx = 1;
-			gridBagConstraints11.gridy = 6;
+			gridBagConstraints11.gridy = 7;
 			gridBagConstraints11.weightx = 1.0;
 			gridBagConstraints11.fill = java.awt.GridBagConstraints.HORIZONTAL;
 			gridBagConstraints11.insets = new java.awt.Insets(0,5,5,0);
 			gridBagConstraints12.gridx = 2;
-			gridBagConstraints12.gridy = 6;
+			gridBagConstraints12.gridy = 7;
 			gridBagConstraints12.insets = new java.awt.Insets(0,5,5,0);
+			gridBagConstraints12.anchor = java.awt.GridBagConstraints.EAST;
 			jLabel5.setText("材料单位");
 			gridBagConstraints13.gridx = 3;
-			gridBagConstraints13.gridy = 6;
+			gridBagConstraints13.gridy = 7;
 			gridBagConstraints13.weightx = 1.0;
 			gridBagConstraints13.fill = java.awt.GridBagConstraints.HORIZONTAL;
 			gridBagConstraints13.insets = new java.awt.Insets(0,5,5,0);
-			gridBagConstraints14.gridx = 0;
-			gridBagConstraints14.gridy = 7;
-			gridBagConstraints14.anchor = java.awt.GridBagConstraints.WEST;
-			gridBagConstraints14.insets = new java.awt.Insets(0,0,5,0);
+			gridBagConstraints14.gridx = 2;
+			gridBagConstraints14.gridy = 6;
+			gridBagConstraints14.anchor = java.awt.GridBagConstraints.EAST;
+			gridBagConstraints14.insets = new java.awt.Insets(0,5,5,0);
 			jLabel6.setText("加工零件数量");
-			gridBagConstraints15.gridx = 1;
-			gridBagConstraints15.gridy = 7;
+			gridBagConstraints15.gridx = 3;
+			gridBagConstraints15.gridy = 6;
 			gridBagConstraints15.weightx = 1.0;
 			gridBagConstraints15.fill = java.awt.GridBagConstraints.HORIZONTAL;
 			gridBagConstraints15.insets = new java.awt.Insets(0,5,5,0);
@@ -230,6 +237,16 @@ public class MaterialCalculator extends JDialog {
 			gridBagConstraints23.insets = new java.awt.Insets(0,0,5,0);
 			gridBagConstraints23.anchor = java.awt.GridBagConstraints.WEST;
 			jLabel12.setText("定额");
+			gridBagConstraints110.gridx = 0;
+			gridBagConstraints110.gridy = 6;
+			gridBagConstraints110.anchor = java.awt.GridBagConstraints.EAST;
+			gridBagConstraints110.insets = new java.awt.Insets(0,0,5,0);
+			jLabel13.setText("毛坯重量");
+			gridBagConstraints21.gridx = 1;
+			gridBagConstraints21.gridy = 6;
+			gridBagConstraints21.weightx = 1.0;
+			gridBagConstraints21.fill = java.awt.GridBagConstraints.HORIZONTAL;
+			gridBagConstraints21.insets = new java.awt.Insets(0,5,5,0);
 			jPanel.add(jLabel, gridBagConstraints1);
 			jPanel.add(getTxtMaterialDim(), gridBagConstraints2);
 			jPanel.add(jLabel1, gridBagConstraints3);
@@ -249,6 +266,8 @@ public class MaterialCalculator extends JDialog {
 			jPanel.add(jLabel11, gridBagConstraints18);
 			jPanel.add(getTxtRation(), gridBagConstraints22);
 			jPanel.add(jLabel12, gridBagConstraints23);
+			jPanel.add(jLabel13, gridBagConstraints110);
+			jPanel.add(getTxtRoughtWeight(), gridBagConstraints21);
 		}
 		return jPanel;
 	}
@@ -326,6 +345,17 @@ public class MaterialCalculator extends JDialog {
 			cbxMaterialUom = new JComboBox();
 		}
 		return cbxMaterialUom;
+	}
+	/**
+	 * This method initializes jTextField	
+	 * 	
+	 * @return javax.swing.JTextField	
+	 */    
+	private JTextField getTxtRoughtWeight() {
+		if (txtRoughtWeight == null) {
+			txtRoughtWeight = new JTextField();
+		}
+		return txtRoughtWeight;
 	}
 	/**
 	 * This method initializes jTextField3	
@@ -426,6 +456,17 @@ public class MaterialCalculator extends JDialog {
 		return cbxFormulae;
 	}
 	/**
+	 * This method initializes jTextField7	
+	 * 	
+	 * @return javax.swing.JTextField	
+	 */    
+	private JTextField getTxtRation() {
+		if (txtRation == null) {
+			txtRation = new JTextField();
+		}
+		return txtRation;
+	}
+	/**
 	 * This method initializes jPanel2	
 	 * 	
 	 * @return javax.swing.JPanel	
@@ -477,17 +518,6 @@ public class MaterialCalculator extends JDialog {
 		return btnCancel;
 	}
 	/**
-	 * This method initializes jTextField7	
-	 * 	
-	 * @return javax.swing.JTextField	
-	 */    
-	private JTextField getTxtRation() {
-		if (txtRation == null) {
-			txtRation = new JTextField();
-		}
-		return txtRation;
-	}
-	/**
 	 * This method initializes jScrollPane	
 	 * 	
 	 * @return javax.swing.JScrollPane	
@@ -523,6 +553,7 @@ public class MaterialCalculator extends JDialog {
                 {"r_material_dim", txtMaterialDim}, // 毛坯下料尺寸
                 {"rough qty", txtRoughQty}, // 毛坯数量
                 {"makepartnum", txtMakePartNum}, // 加工零件数量
+                {"Rough Weight", txtRoughtWeight}, // 毛坯重量
                 {"materialration", txtRation} // 定额
             };
             
@@ -663,6 +694,7 @@ public class MaterialCalculator extends JDialog {
         util.centerWindow(null, f);
         f.show();
         
+        // 开始进行公式计算
         if (f.userChoice != JOptionPane.OK_OPTION)
             return;
         
@@ -672,8 +704,11 @@ public class MaterialCalculator extends JDialog {
         formator.setGroupingUsed(false);
         
         // 定额
-        double value = f.getResult();
+        double value = f.getRationResult();
         txtRation.setText(formator.format(value));
+        // 毛坯重量
+        value = f.getRoughWeightResult();
+        txtRoughtWeight.setText(formator.format(value));
         // 毛坯数量
         String tmpString = (String)dosFormula.get("rough qty");
         if (tmpString == null) {
@@ -733,6 +768,7 @@ public class MaterialCalculator extends JDialog {
         // check data
         String msg = "";
         Float fRoughQty = null;
+        Double dRougthWeight = null;
         Double dMakePartNum = null;
         Double dRation = null;
         
@@ -744,6 +780,11 @@ public class MaterialCalculator extends JDialog {
             if (!tmpString.trim().equals(""))
                 fRoughQty = new Float(tmpString);
             
+            msg = "毛坯重量";
+            tmpString = txtRoughtWeight.getText();
+            if (!tmpString.trim().equals(""))
+                dRougthWeight = new Double(tmpString);
+
             msg = "加工零件数量";
             tmpString = txtMakePartNum.getText();
             if (!tmpString.trim().equals(""))
@@ -762,6 +803,7 @@ public class MaterialCalculator extends JDialog {
         contextObj.put("r_material_dim", tmpString); // 毛坯下料尺寸
         
         contextObj.put("rough qty", fRoughQty); // 毛坯数量
+        contextObj.put("Rough Weight", dRougthWeight); // 毛坯重量
         contextObj.put("makepartnum", dMakePartNum); // 加工零件数量
         contextObj.put("materialration", dRation); // 定额
         
@@ -856,4 +898,4 @@ public class MaterialCalculator extends JDialog {
             JOptionPane.showMessageDialog(this, "保存失败.", "提示", JOptionPane.WARNING_MESSAGE);
         }
     }
-}  //  @jve:decl-index=0:visual-constraint="10,10"
+ }  //  @jve:decl-index=0:visual-constraint="10,10"

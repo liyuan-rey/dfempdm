@@ -518,6 +518,10 @@ public class RoutingTableModel extends AbstractTableModel {
         return (DOSChangeable)data.get(index);
     }
 
+    public DOSChangeable setRawData(int index, DOSChangeable newItem) {
+        return (DOSChangeable)data.set(index, newItem);
+    }
+
     /**
      * @param editMode
      * @param authorTypes

@@ -6,8 +6,6 @@ package dyna.framework.client.dfempdm;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 
 import javax.swing.AbstractCellEditor;
 import javax.swing.JPanel;
@@ -54,12 +52,6 @@ public class TextAreaPanel extends JPanel {
 	private JTextArea getTxtContent() {
 		if (txtContent == null) {
 			txtContent = new JTextArea();
-	        txtContent.addKeyListener(new KeyAdapter() {
-	            
-	            public void keyTyped(KeyEvent e) {
-	                cellEditor.editor.setText(txtContent.getText());
-	            }
-	        });
 		}
 		return txtContent;
 	}
@@ -102,21 +94,7 @@ public class TextAreaPanel extends JPanel {
          */
         public myCellEditor() {
             editor = new JTextArea();
-            //editor.setEditable(false);
-//            editor.getDocument().addDocumentListener(new DocumentListener() {
-//                public void changedUpdate(DocumentEvent e) {
-//                    Document doc = e.getDocument();
-//                    setText(editor.getText()/*doc.getText(0, doc.getLength())*/);
-//                }
-//
-//                public void insertUpdate(DocumentEvent e) {}
-//                public void removeUpdate(DocumentEvent e) {}
-//            });
-            editor.addKeyListener(new KeyAdapter() {
-                public void keyTyped(KeyEvent e) {
-                    TextAreaPanel.this.setText(editor.getText());
-                }
-            });
+            editor.setDocument(txtContent.getDocument()); // Í¬²½±à¼­
         }
 
         /*
@@ -128,7 +106,6 @@ public class TextAreaPanel extends JPanel {
         public Component getTableCellEditorComponent(JTable table,
                 Object value, boolean isSelected, int row, int column) {
             setText((String)value);
-            editor.setText((String)value);
             return editor;
         }
 

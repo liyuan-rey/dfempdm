@@ -32,6 +32,7 @@ public class HowTo {
 			}
 			
 			editor.setContextObject(dosObj, 3, OpTypes);
+			editor.setExtendedState(java.awt.Frame.MAXIMIZED_BOTH);
 			editor.show();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -40,4 +41,20 @@ public class HowTo {
 		}
     }
     
+    public static void useMaterialCalculator(Object uiNormalPart) {
+	    try {
+            if (false == Class.forName("dyna.framework.client.UIGeneration").isInstance(uiNormalPart))
+                JOptionPane.showMessageDialog(null, "inputObject's type mismatch when calling material calculator.\n");
+            
+		    DOSChangeable dosObj = ((UIGeneration)uiNormalPart).getInstanceData();
+			MaterialCalculator calculator = new MaterialCalculator();
+			
+			calculator.setContextObject(dosObj);
+			calculator.show();
+        } catch (Exception e) {
+			e.printStackTrace();
+			JOptionPane.showMessageDialog(null, "@_@! Something goes wrong!\n"
+					+ e.toString());
+        }
+    }
 }

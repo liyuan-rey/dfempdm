@@ -88,7 +88,7 @@ class CodeSelectDialog extends JDialog {
 	    setSize(270, 380);
 	    setContentPane(panel);
 	    
-	    RoutingEditor.CenterWindow(getParent(), this);
+	    util.CenterWindow(getParent(), this);
     }
     
     public int getChoice() {

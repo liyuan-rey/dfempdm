@@ -787,8 +787,8 @@ public class MaterialCalculator extends JDialog {
             tmpString = (String)contextObj.get("weight");
             Double dWeight = new Double(tmpString);
             Double dRatio = new Double(dWeight.doubleValue() 
-                    / dRation.doubleValue() / dMakePartNum.doubleValue() 
-                    / dRation.doubleValue());
+                    / dRation.doubleValue() / fRoughQty.floatValue() 
+                    / dMakePartNum.doubleValue());
             
             if (dRatio.doubleValue() > 1) {
                 JOptionPane.showMessageDialog(this, "工艺定额利用率计算结果大于 1, 材料定额数据有误, 请检查.",

@@ -17,8 +17,8 @@ public class RoutingFilterModel extends AbstractTableModel implements
         TableModelListener {
     public static final String FILTER_ALL = "-Ыљга-";
     
-    private JTable table = null;
-    private RoutingTableModel model = null;
+    protected JTable table = null;
+    protected RoutingTableModel model = null;
     private String matchOpSpec = "";
 
     public RoutingFilterModel(JTable table, RoutingTableModel model) {

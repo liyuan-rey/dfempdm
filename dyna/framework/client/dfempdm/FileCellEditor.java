@@ -72,8 +72,9 @@ public class FileCellEditor extends AbstractCellEditor implements
             boolean isSelected, int row, int column) {
         
         dosRouting = null;
-        RoutingTableModel routingModel = (RoutingTableModel)table.getModel();
-        dosRouting = routingModel.getRawData(row);
+        RoutingFilterModel routingModel = (RoutingFilterModel)table.getModel();
+        
+        dosRouting = routingModel.model.getRawData(row);
         
         txtValue.setText(value != null ? value.toString() : "");
         

@@ -651,8 +651,8 @@ public class MaterialCalculator extends JFrame {
 	                f.setValue("单位重量", dTmp == null ? null : dTmp.toString());
 	            }
             } catch (Exception e) {
+                System.err.println("设置公式计算变量缺省值时出错.");
                 // do nothing
-                e.printStackTrace();
             }
         }
         
@@ -666,12 +666,19 @@ public class MaterialCalculator extends JFrame {
         // 将计算结果写入界面, 数字保留三位小数
         NumberFormat formator = NumberFormat.getInstance();
         formator.setMaximumFractionDigits(3);
+        formator.setGroupingUsed(false);
+        
         // 定额
         double value = f.getResult();
         txtRation.setText(formator.format(value));
         // 毛坯数量
-        String tmpString = f.getValue("数量");
-        txtRoughQty.setText(tmpString);
+        String tmpString = (String)dosFormula.get("rough qty");
+        if (tmpString == null) {
+            txtRoughQty.setText("");
+        } else {
+	        tmpString = f.getValue(tmpString);
+	        txtRoughQty.setText(tmpString);
+        }
         // 毛坯下料尺寸
         tmpString = (String)dosFormula.get("r_material_dim");
         if (tmpString == null) {
@@ -774,9 +781,19 @@ public class MaterialCalculator extends JFrame {
                     / dRation.doubleValue() / dMakePartNum.doubleValue() 
                     / dRation.doubleValue());
             
-            contextObj.put("material usage ratio", dRatio);
+            if (dRatio.doubleValue() > 1) {
+                JOptionPane.showMessageDialog(this, "工艺定额利用率计算结果大于 1, 材料定额数据有误, 请检查.",
+                        "提示", JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+            
+            NumberFormat formator = NumberFormat.getInstance();
+            formator.setMaximumFractionDigits(3);
+            formator.setGroupingUsed(false);
+
+            contextObj.put("material usage ratio", new Double(formator.format(dRatio)));
         } catch (Exception e) {
-            System.err.println("数据不全, 计算工艺定额利用率时出错. \n" + e);
+            System.err.println("数据不全, 计算工艺定额利用率时出错: " + e);
             contextObj.put("material usage ratio", null);
         }
         

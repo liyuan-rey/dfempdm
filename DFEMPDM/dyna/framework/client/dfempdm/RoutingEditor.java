@@ -47,6 +47,7 @@ import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
+import javax.swing.text.JTextComponent;
 
 import com.jgoodies.swing.ExtToolBar;
 import com.jgoodies.swing.util.ToolBarButton;
@@ -352,24 +353,35 @@ public class RoutingEditor extends JFrame {
             
             routingTable.addKeyListener(new KeyAdapter() {
                 public void keyPressed(KeyEvent e) {
-                    if (e.getKeyCode() != KeyEvent.VK_DELETE)
+                    if (e.getKeyChar() == KeyEvent.CHAR_UNDEFINED)
                         return;
-                    
+
                     int row = routingTable.getSelectedRow();
                     int col = routingTable.getSelectedColumn();
                     
                     if (routingTable.isCellEditable(row, col) == false)
                         return;
                     
-                    if (col == RoutingTableModel.DESCRIPTION_COLUMN)
-                        routingTable.setValueAt(null, row, col);
-                    
-                    TableCellEditor editor = routingTable.getCellEditor(row, col);
+                    TableCellEditor editor = routingTable.getCellEditor(
+                            row, col);
+
+                    Component component = null;
                     if (editor instanceof DefaultCellEditor) {
-                        Component comp = ((DefaultCellEditor)editor).getComponent();
-                        if (comp instanceof JTextField)
-                            routingTable.setValueAt(null, row, col);
-                            //((JTextField)comp).setText("");
+                        component = ((DefaultCellEditor) editor).getComponent();
+                        if (!(component instanceof JTextField))
+                            component = null;
+                    } else if (editor instanceof TextAreaPanel.myCellEditor) {
+                        component = (((TextAreaPanel.myCellEditor) editor)).editor;
+                    }
+                    
+                    if (component != null) {
+                        // 将 TextField 的单元格置为可编辑状态
+                        routingTable.editCellAt(row, col);
+                        component.requestFocus();
+                        
+                        // 按 delete 键直接删除内容
+                        if (e.getKeyCode() == KeyEvent.VK_DELETE)
+                            ((JTextComponent)component).setText("");
                     }
                 }
             });
@@ -390,8 +402,7 @@ public class RoutingEditor extends JFrame {
                             
                             if (tableModel.isCellEditable(row, col))
                                 doPasteToCell(row, col);
-                        }
-                        else {
+                        } else {
                     	    if (hasPermission("add"))
                     	        doPasteToRouting();
                         }

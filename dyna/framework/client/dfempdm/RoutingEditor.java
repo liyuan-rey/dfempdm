@@ -23,10 +23,8 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.EventObject;
 import java.util.HashMap;
-import java.util.logging.Level;
-import java.util.logging.SimpleFormatter;
-import java.util.logging.StreamHandler;
 
 import javax.swing.Box;
 import javax.swing.DefaultCellEditor;
@@ -317,8 +315,14 @@ public class RoutingEditor extends JFrame {
 
                 public void actionPerformed(ActionEvent e) {
                     Object obj = cbxFilter.getSelectedItem();
-                    filterModel.setMatchOpSpec(obj.toString());
-                    filterModel.fireTableDataChanged();
+                    if (obj != null) {
+                        TableCellEditor editor = routingTable.getCellEditor();
+                        if (editor != null)
+                            editor.stopCellEditing();
+
+                        filterModel.setMatchOpSpec(obj.toString());
+	                    filterModel.fireTableDataChanged();
+                    }
                 }
             });
         }
@@ -895,6 +899,9 @@ public class RoutingEditor extends JFrame {
                                 "没有权限进行此项操作.");
                         return;
                     }
+                    
+                    if (!checkFilterModel())
+                        return;
 
                     TableCellEditor editor = routingTable.getCellEditor();
                     if (editor != null)
@@ -929,6 +936,15 @@ public class RoutingEditor extends JFrame {
         return btnAdd;
     }
 
+    private boolean checkFilterModel() {
+        if (filterModel.needFilter()) {
+            JOptionPane.showMessageDialog(this, "过滤显示模式下无法进行此操作, 请先取消过滤显示模式.");
+            return false;
+        }
+        
+        return true;
+    }
+
     /**
      * This method initializes btnRemove
      * 
@@ -949,6 +965,10 @@ public class RoutingEditor extends JFrame {
                         return;
                     }
 
+                    if (!checkFilterModel())
+                        return;
+
+                    // begin del logic
                     int[] selRows = routingTable.getSelectedRows();
                     if (selRows == null || selRows.length < 1 || selRows[0] < 0
                             || selRows[0] >= routingTable.getRowCount())
@@ -1005,6 +1025,9 @@ public class RoutingEditor extends JFrame {
                         return;
                     }
 
+                    if (!checkFilterModel())
+                        return;
+
                     // 目前不提供同时移动多行的功能, 因为有隔行多选时进行移动的逻辑不确定
                     int selRow = routingTable.getSelectedRow();
                     if (selRow < 1 || selRow >= routingTable.getRowCount()) // < 1:
@@ -1047,6 +1070,9 @@ public class RoutingEditor extends JFrame {
                                 "没有权限进行此项操作.");
                         return;
                     }
+
+                    if (!checkFilterModel())
+                        return;
 
                     // 目前不提供同时移动多行的功能, 因为有隔行多选时进行移动的逻辑不确定
                     int selRow = routingTable.getSelectedRow();
@@ -1298,6 +1324,13 @@ public class RoutingEditor extends JFrame {
         column = columnModel
                 .getColumn(RoutingTableModel.OPERATION_SPECIALTY_COLUMN);
         column.setCellEditor(new DefaultCellEditor(cbxOperationSpecialty) {
+
+            public boolean isCellEditable(EventObject anEvent) { 
+                if (!checkFilterModel())
+                    return false;
+                
+            	return delegate.isCellEditable(anEvent); 
+            }
 
             public Component getTableCellEditorComponent(JTable table,
                     Object value, boolean isSelected, int row, int column) {
@@ -1622,6 +1655,7 @@ public class RoutingEditor extends JFrame {
             cbxFilter.removeAllItems();
             cbxFilter.addItem(RoutingFilterModel.FILTER_ALL); // at least we have this one
             util.refreshCodeComboBox("工艺专业类型", cbxFilter, null, false);
+            cbxFilter.setSelectedIndex(0);
         } catch (Exception e) {
             System.out.println("更新工艺专业类型过滤器内容时出现错误: " + e);
         }

@@ -4,6 +4,7 @@
  */
 package dyna.framework.client.dfempdm;
 
+import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.event.TableModelListener;
@@ -36,7 +37,7 @@ public class RoutingFilterModel extends AbstractTableModel implements
         int count = model.getRowCount();
         int viewCount = count;
 
-        if (matchOpSpec != null && !"".equals(matchOpSpec) && !FILTER_ALL.equals(matchOpSpec)) {
+        if (needFilter()) {
             Object value = null;
 
             for (int i = 0; i < count; i++) {
@@ -64,7 +65,38 @@ public class RoutingFilterModel extends AbstractTableModel implements
         return model.isCellEditable(convertRowIndexToModel(row), column);
     }
 
+    // By default, implement TableModel by forwarding all messages
+    // to the model.
+
+    public int getColumnCount() {
+        return model.getColumnCount();
+    }
+
+    public String getColumnName(int col) {
+        return model.getColumnName(col);
+    }
+
+    public Class getColumnClass(int col) {
+        return model.getColumnClass(col);
+    }
+
+    // Implementation of the TableModelListener interface,
+    // By default forward all events to all the listeners.
+    public void tableChanged(TableModelEvent e) {
+        fireTableChanged(e);
+    }
+
+    // tool func
+    
+    public boolean needFilter() {
+        return (matchOpSpec != null && !"".equals(matchOpSpec) && !FILTER_ALL.equals(matchOpSpec));
+    }
+
     public int convertRowIndexToModel(int viewRowIndex) {
+        if (!needFilter())
+            return viewRowIndex;
+        
+        // need filter
         int modelIndex = -1;
 
         int count = model.getRowCount();
@@ -73,8 +105,8 @@ public class RoutingFilterModel extends AbstractTableModel implements
         for (int i = 0; i < count && modelIndex < viewRowIndex; i++) {
             value = model.getValueAt(i,
                     RoutingTableModel.OPERATION_SPECIALTY_COLUMN);
-            if (!matchOpSpec.equals(value))
-                modelIndex++;
+            if (matchOpSpec.equals(value))
+                modelIndex = i;
         }
 
         value = null;
@@ -98,24 +130,4 @@ public class RoutingFilterModel extends AbstractTableModel implements
         return viewIndex;
     }
 
-    // By default, implement TableModel by forwarding all messages
-    // to the model.
-
-    public int getColumnCount() {
-        return model.getColumnCount();
-    }
-
-    public String getColumnName(int col) {
-        return model.getColumnName(col);
-    }
-
-    public Class getColumnClass(int col) {
-        return model.getColumnClass(col);
-    }
-
-    // Implementation of the TableModelListener interface,
-    // By default forward all events to all the listeners.
-    public void tableChanged(TableModelEvent e) {
-        fireTableChanged(e);
-    }
 }

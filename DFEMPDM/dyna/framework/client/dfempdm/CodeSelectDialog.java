@@ -87,8 +87,6 @@ class CodeSelectDialog extends JDialog {
 	    
 	    setSize(270, 380);
 	    setContentPane(panel);
-	    
-	    util.CenterWindow(getParent(), this);
     }
     
     public int getChoice() {

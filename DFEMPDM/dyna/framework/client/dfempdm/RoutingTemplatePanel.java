@@ -15,8 +15,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.table.DefaultTableModel;
@@ -25,7 +23,6 @@ import javax.swing.tree.DefaultMutableTreeNode;
 
 import dyna.framework.service.DOS;
 import dyna.framework.service.dos.DOSChangeable;
-import dyna.uic.DynaTable;
 /**
  * @author ภ๎ิจ
  *

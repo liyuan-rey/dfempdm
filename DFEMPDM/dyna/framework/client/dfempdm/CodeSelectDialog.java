@@ -18,7 +18,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.EtchedBorder;
 
 import dyna.framework.service.dos.DOSChangeable;
 

@@ -828,13 +828,13 @@ public class MaterialCalculator extends JDialog {
 
     	}
     	
-    	contextObj.put ("WorkShop Routing Personnel", userOuid);
+    	contextObj.put ("Material Ration Personnel", userOuid);
     	
     	GregorianCalendar thisday = new GregorianCalendar(); 
       	Date d = thisday.getTime();
       	DateFormat df = DateFormat.getDateInstance();
       	String s = df.format(d);
-      	contextObj.put ("Workshop Routing Modify Date", s );
+      	contextObj.put ("Material Ration Modify Date", s );
         
       	// save
         try {

@@ -230,7 +230,9 @@ public class Formulae extends JDialog {
 	        } catch (Exception e) {
 	            // do nothing
 	        }
-	        AddVariable(pieces[i]);
+	        
+	        if (!pieces[i].equals(""))
+	            AddVariable(pieces[i]);
 	    }
 	    
 	    return true;

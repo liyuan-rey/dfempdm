@@ -275,7 +275,7 @@ public class RoutingTableModel extends AbstractTableModel {
             String ouidRouting = (String)rowData.get("ouid");
             if (ouidRouting != null && !ouidRouting.equals("")) {
 	            ArrayList files = DynaMOAD.dos.listFile(ouidRouting);
-	            rowData.put(columnInfo[ATTACHMENT_COLUMN][1], Integer.toString(files.size()));
+	            rowData.put(columnInfo[ATTACHMENT_COLUMN][1], Integer.toString(files == null ? 0 : files.size()));
             }
         } catch (Exception e) {
             e.printStackTrace();

@@ -806,35 +806,41 @@ public class MaterialCalculator extends JDialog {
             contextObj.put("material usage ratio", null);
         }
         
-        // 将材料定额人员和修改日期写到数据库
-		//get current user's ouid
-    	String fuserOuid = "800017a7"; 
-    	String userOuid = null;
-    	ArrayList searchResults = null ;
-    	HashMap searchCondition = new HashMap () ;
-    	searchCondition.put ("8000197c", dyna.framework.client.LogIn.userID) ; 
-    	try
-    	{
-    	    searchResults = dos.list (fuserOuid, searchCondition) ;
-    	    ArrayList tempList = (ArrayList) searchResults.get (0);
-    	   	userOuid = (String) tempList.get(0);	
-    	    tempList = null;
-    	}
-    	catch (dyna.framework.iip.IIPRequestException e)
-    	{
-    		e.printStackTrace();
-    		JOptionPane.showMessageDialog(this, "获取当前用户失败, 保存失败.", "提示", JOptionPane.WARNING_MESSAGE);
-    		return;
+        // 将修改材料定额的人员写到数据库
+        //get current user's ouid
+    	String fuserOuid = "800017a7";
+        String userOuid = null;
+        String nameOfUser = "";
+        
+        ArrayList searchResults = null;
+        HashMap searchCondition = new HashMap();
+        searchCondition.put("8000197c", dyna.framework.client.LogIn.userID);
+        try {
+            searchResults = dos.list(fuserOuid, searchCondition);
+            
+            ArrayList tempList = (ArrayList) searchResults.get(0);
+            userOuid = (String) tempList.get(0);
+            
+            DOSChangeable dosUser = dos.get(userOuid);
+            nameOfUser = (String)dosUser.get("md$number") + " " + (String)dosUser.get("md$description");
+            
+            tempList = null;
+        } catch (dyna.framework.iip.IIPRequestException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "获取当前用户失败, 保存失败.", "提示",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        contextObj.put("Material Ration Personnel", userOuid);
+        contextObj.put("name@Material Ration Personnel", nameOfUser);
 
-    	}
-    	
-    	contextObj.put ("Material Ration Personnel", userOuid);
-    	
-    	GregorianCalendar thisday = new GregorianCalendar(); 
-      	Date d = thisday.getTime();
-      	DateFormat df = DateFormat.getDateInstance();
-      	String s = df.format(d);
-      	contextObj.put ("Material Ration Modify Date", s );
+        // 将材料定额的修改日期写到数据库
+        GregorianCalendar thisday = new GregorianCalendar();
+        Date d = thisday.getTime();
+        DateFormat df = DateFormat.getDateInstance();
+        String s = df.format(d);
+        contextObj.put("Material Ration Modify Date", s);
         
       	// save
         try {

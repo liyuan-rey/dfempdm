@@ -48,13 +48,17 @@ public class HowTo {
                 JOptionPane.showMessageDialog(null, "inputObject's type mismatch when calling material calculator.\n");
             
 		    DOSChangeable dosObj = ((UIGeneration)uiNormalPart).getInstanceData();
-			MaterialCalculator calculator = new MaterialCalculator();
+			MaterialCalculator calculator = new MaterialCalculator((UIGeneration)uiNormalPart, true);
 			
 			calculator.setContextObject(dosObj);
 			
 			calculator.pack();
 			util.centerWindow(null, calculator);
 			calculator.show();
+			
+			// 更新零部件界面
+			if (calculator.choice == JOptionPane.OK_OPTION)
+			    ((UIGeneration)uiNormalPart).setData(dosObj);
         } catch (Exception e) {
 			e.printStackTrace();
 			JOptionPane.showMessageDialog(null, "@_@! Something goes wrong!\n"

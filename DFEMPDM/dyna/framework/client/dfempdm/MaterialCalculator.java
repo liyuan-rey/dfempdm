@@ -5,9 +5,9 @@
 package dyna.framework.client.dfempdm;
 
 import java.awt.FlowLayout;
+import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.NumberFormat;
@@ -17,7 +17,7 @@ import java.util.HashMap;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
-import javax.swing.JFrame;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -30,7 +30,8 @@ import dyna.framework.service.dos.DOSChangeable;
  * @author 李渊
  *
  */
-public class MaterialCalculator extends JFrame {
+public class MaterialCalculator extends JDialog {
+    public int choice = JOptionPane.CANCEL_OPTION;
     private static DOS dos = dyna.framework.client.DynaMOAD.dos;
     private DOSChangeable contextObj = null;
     private static final String remarkTempl = "其中, 夹头 %j 压头 %y    每 %m 件一个夹头或压头.";
@@ -70,8 +71,8 @@ public class MaterialCalculator extends JFrame {
 	 * This method initializes 
 	 * 
 	 */
-	public MaterialCalculator() {
-		super();
+	public MaterialCalculator(Frame owner, boolean modal) {
+		super(owner, modal);
 		initialize();
 	}
 	/**
@@ -82,7 +83,6 @@ public class MaterialCalculator extends JFrame {
 	private void initialize() {
         this.setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         this.setContentPane(getJScrollPane());
-        this.setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/icons/SmallSearchButton.gif")));
         this.setTitle("材料定额计算");
         this.setSize(390, 330);
 			
@@ -801,6 +801,7 @@ public class MaterialCalculator extends JFrame {
             dos.set(contextObj);
             JOptionPane.showMessageDialog(this, "保存成功.", "提示", JOptionPane.INFORMATION_MESSAGE);
             
+            this.choice = JOptionPane.OK_OPTION;
             this.dispose();
         } catch (Exception e) {
             e.printStackTrace();

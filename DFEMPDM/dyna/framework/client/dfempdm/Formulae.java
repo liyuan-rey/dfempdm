@@ -5,6 +5,7 @@
 package dyna.framework.client.dfempdm;
 
 import java.awt.BorderLayout;
+import java.awt.Dialog;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -47,7 +48,7 @@ public class Formulae extends JDialog {
 	 * This method initializes 
 	 * 
 	 */
-	public Formulae(java.awt.Frame owner, boolean modal) {
+	public Formulae(Dialog owner, boolean modal) {
 		super(owner, modal);
 		initialize();
 	}

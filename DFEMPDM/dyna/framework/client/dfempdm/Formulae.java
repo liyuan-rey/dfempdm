@@ -90,9 +90,7 @@ public class Formulae extends JDialog {
 			lblFormula = new JLabel();
 			jPanel1 = new JPanel();
 			jPanel1.setLayout(new BoxLayout(jPanel1, BoxLayout.Y_AXIS));
-			lblFormula.setText("a+b*c/d");
 			lblFormula.setBorder(javax.swing.BorderFactory.createEmptyBorder(0,0,5,0));
-			lblFormulaDesc.setText("<¹«Ê½ÃèÊö>");
 			lblFormulaDesc.setBorder(javax.swing.BorderFactory.createEmptyBorder(0,0,5,0));
 			jPanel1.setBackground(new java.awt.Color(223,216,206));
 			jPanel1.add(lblFormulaDesc, null);

@@ -645,11 +645,14 @@ public class MaterialCalculator extends JFrame {
             try {
                 dosMaterial = dos.get(ouidMaterial);
 	            if (dosMaterial != null) {
-	                f.setValue("密度", (String)dosMaterial.get("Density"));
-	                f.setValue("单位长度重量", (String)dosMaterial.get("Theoretic Weight"));
+	                Double dTmp = (Double)dosMaterial.get("Density");
+	                f.setValue("密度", dTmp == null ? null : dTmp.toString());
+	                dTmp = (Double)dosMaterial.get("Theoretic Weight");
+	                f.setValue("单位长度重量", dTmp == null ? null : dTmp.toString());
 	            }
             } catch (Exception e) {
                 // do nothing
+                e.printStackTrace();
             }
         }
         
